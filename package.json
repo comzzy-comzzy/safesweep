@@ -1,0 +1,12 @@
+{
+  "name": "safesweep",
+  "version": "1.0.0",
+  "description": "Safesweep - AI Wallet Dust Sweeper & Phishing Shield for OKX Wallet",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "author": "SafeSweep Team",
+  "license": "MIT"
+}

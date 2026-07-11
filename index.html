@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Safesweep | OKX Wallet AI Optimizer & Phishing Shield</title>
+    <meta name="description" content="Safesweep is an AI-powered asset optimizer and phishing shield built for OKX Wallet. Sweep low-value dust tokens and auto-hide malicious spam assets." />
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+    
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Premium background elements -->
+    <div class="glow-bg">
+      <div class="glow-orb orb-1"></div>
+      <div class="glow-orb orb-2"></div>
+      <div class="glow-orb orb-3"></div>
+    </div>
+
+    <div class="app-container">
+      <!-- Sidebar Panel -->
+      <aside class="app-sidebar" aria-label="Wallet Profile">
+        <div class="sidebar-header">
+          <div class="logo-area">
+            <div class="logo-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <path d="M8 15h8"/>
+                <path d="M8 11h8"/>
+              </svg>
+            </div>
+            <div class="logo-text">
+              <h1>Safesweep</h1>
+              <span class="badge">OKX HACKATHON</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="wallet-card">
+          <div class="wallet-header">
+            <span>Connected Wallet</span>
+            <span class="network-indicator green" id="networkStatus">X Layer Mainnet</span>
+          </div>
+          <div class="wallet-address-row">
+            <code id="walletAddress">0x71C7...6b8F</code>
+            <button class="copy-btn" id="copyAddressBtn" aria-label="Copy wallet address">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="wallet-balance">
+            <p class="balance-label">Security-Optimized Balance</p>
+            <h2 class="balance-amount" id="totalBalance">$424.50</h2>
+            <div class="balance-diff">
+              <span class="positive">+0.04% ($0.15) swept today</span>
+            </div>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Main Navigation">
+          <button class="nav-item active" data-tab="sweeper" id="btnTabSweeper">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+            <span>Dust Sweeper</span>
+            <span class="nav-badge" id="dustBadge">5</span>
+          </button>
+          
+          <button class="nav-item" data-tab="shield" id="btnTabShield">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <span>Phishing Shield</span>
+            <span class="nav-badge alert" id="shieldBadge">3</span>
+          </button>
+
+          <button class="nav-item" data-tab="copilot" id="btnTabCopilot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span>AI Copilot Chat</span>
+            <span class="pulse-dot"></span>
+          </button>
+
+          <button class="nav-item" data-tab="revenue" id="btnTabRevenue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"/>
+              <line x1="12" y1="20" x2="12" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+            <span>Revenue Analytics</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="shield-toggle-card">
+            <div class="toggle-info">
+              <h4>Auto-Shield Protection</h4>
+              <p>Hides phishing tokens instantly</p>
+            </div>
+            <label class="switch" for="autoShieldSwitch">
+              <input type="checkbox" id="autoShieldSwitch" checked />
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div class="premium-banner">
+            <div class="premium-content">
+              <h4>Safesweep Premium</h4>
+              <p>Mempool monitoring & RPC shield</p>
+              <button class="upgrade-btn" id="sidebarUpgradeBtn">Upgrade for 0.1 OKB</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Workspace -->
+      <main class="app-workspace">
+        <header class="app-header">
+          <div class="header-title">
+            <h2 id="pageTitle">Dust Sweeper</h2>
+            <p id="pageDescription" class="subtext">Sweep low-value tokens into OKB or USDT in a single batch transaction to save gas.</p>
+          </div>
+          <div class="header-actions">
+            <button class="rpc-status" id="rpcStatusBtn">
+              <span class="status-indicator-green"></span>
+              OKX Node: Healthy (12ms)
+            </button>
+            <button class="connect-wallet-btn" id="connectWalletBtn">
+              <span class="wallet-icon-svg">
+                <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" width="16" height="16">
+                  <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/>
+                  <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/>
+                  <path d="M18 12a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h4v-6z"/>
+                </svg>
+              </span>
+              <span>OKX Connected</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <div class="content-viewport">
+          
+          <!-- TAB 1: DUST SWEEPER -->
+          <div class="tab-content active" id="tabSweeper">
+            <div class="sweeper-grid">
+              <!-- Left side: Token selection -->
+              <div class="sweeper-main">
+                <div class="panel-card">
+                  <div class="panel-header flex-header-wrap">
+                    <h3>Select Dust Assets to Sweep</h3>
+                    <div class="sandbox-scanner-wrap">
+                      <input type="text" id="sandboxAddressInput" placeholder="Enter EVM Address to scan..." value="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" />
+                      <button class="action-btn-sm" id="btnSandboxScan" style="background: var(--brand-green); color: #000; font-weight: bold;">Scan Address</button>
+                    </div>
+                    <button class="text-btn" id="btnSelectAllDust">Select All</button>
+                  </div>
+                  
+                  <div class="dust-table-container">
+                    <table class="dust-table" id="dustTable">
+                      <thead>
+                        <tr>
+                          <th style="width: 48px;">Select</th>
+                          <th>Token</th>
+                          <th>Contract Address</th>
+                          <th>Balance</th>
+                          <th>Value (USD)</th>
+                          <th>Security Status</th>
+                        </tr>
+                      </thead>
+                      <tbody id="dustTableBody">
+                        <!-- Populated by JavaScript -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right side: Sweep Control & Summary -->
+              <div class="sweeper-aside">
+                <div class="panel-card checkout-card">
+                  <h3>Sweep Aggregator</h3>
+                  <p class="panel-description text-sm">Convert selected assets into your target token with a single optimized transaction.</p>
+                  
+                  <div class="control-group">
+                    <label for="targetTokenSelect">Target Token</label>
+                    <div class="select-wrapper">
+                      <select id="targetTokenSelect">
+                        <option value="OKB">OKB (Native Utility Token)</option>
+                        <option value="USDT">USDT (Tether USD)</option>
+                        <option value="USDC">USDC (USD Coin)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="summary-details">
+                    <div class="detail-row">
+                      <span>Assets Selected</span>
+                      <strong id="selectedCount">0 / 5</strong>
+                    </div>
+                    <div class="detail-row">
+                      <span>Total Value (USD)</span>
+                      <strong id="totalDustValue">$0.00</strong>
+                    </div>
+                    <div class="detail-row">
+                      <span>Individual Swap Gas (Est.)</span>
+                      <span class="gas-cost-old" id="oldGasCost">$2.25</span>
+                    </div>
+                    <div class="detail-row highlight-green">
+                      <span>Safesweep Batch Gas (Est.)</span>
+                      <strong id="batchGasCost">$0.05</strong>
+                    </div>
+                    <div class="detail-row">
+                      <span>Protocol Fee (1%)</span>
+                      <strong id="protocolFee">$0.00</strong>
+                    </div>
+                    <hr class="divider"/>
+                    <div class="detail-row total-row">
+                      <span>Est. Net Yield</span>
+                      <strong class="text-green" id="netYield">0.0000 OKB</strong>
+                    </div>
+                  </div>
+
+                  <button class="action-btn-primary full-width" id="btnSweepNow" disabled>
+                    🧹 Sweep Selected Assets
+                  </button>
+                  <p class="text-xs text-center text-muted mt-2">Gas optimized via X Layer batch swaps. By sweeping, you agree to a 1% developer fee.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: PHISHING SHIELD -->
+          <div class="tab-content" id="tabShield">
+            <div class="shield-grid">
+              <!-- Left side: Detected spam/phishing -->
+              <div class="shield-main">
+                <div class="panel-card mb-4">
+                  <div class="panel-header">
+                    <h3>Isolated Phishing Assets</h3>
+                    <div class="shield-badge active">Shield Active</div>
+                  </div>
+                  <p class="panel-description text-sm">Safesweep automatically scans, tags, and quarantines malicious code, preventing you from interacting with fake airdrops or honeypots.</p>
+                  
+                  <div class="shield-tabs">
+                    <button class="shield-tab-btn active" id="tabSpamTokensBtn">Phishing Tokens (<span id="spamTokenCount">2</span>)</button>
+                    <button class="shield-tab-btn" id="tabSpamNftsBtn">Suspicious NFTs (<span id="spamNftCount">1</span>)</button>
+                  </div>
+
+                  <div class="shield-list" id="shieldList">
+                    <!-- Populated by JavaScript -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right side: Security overview -->
+              <div class="shield-aside">
+                <div class="panel-card security-score-card">
+                  <h3>Wallet Security Index</h3>
+                  <div class="security-meter-container">
+                    <div class="security-meter">
+                      <div class="meter-bar orange" id="securityMeterBar" style="width: 65%;"></div>
+                      <span class="meter-score" id="securityScoreText">65/100</span>
+                    </div>
+                  </div>
+                  <p class="score-label text-orange" id="securityScoreLabel">Moderate Exposure</p>
+                  <p class="score-desc text-sm">Your wallet has been targeted by 3 airdrop phishing vectors. While currently isolated, you can improve security by upgrading to Mempool Protection.</p>
+                  
+                  <hr class="divider"/>
+                  
+                  <h4>Security Settings</h4>
+                  <ul class="settings-list">
+                    <li>
+                      <div class="setting-text">
+                        <h5>Mempool Blocklist</h5>
+                        <p class="text-xs">Hide threats before they hit your address</p>
+                      </div>
+                      <span class="badge premium">Premium</span>
+                    </li>
+                    <li>
+                      <div class="setting-text">
+                        <h5>Approval Guardian</h5>
+                        <p class="text-xs">Blocks token approvals to known honeypots</p>
+                      </div>
+                      <span class="badge active-badge">Active</span>
+                    </li>
+                    <li>
+                      <div class="setting-text">
+                        <h5>XMTP Threat Alerts</h5>
+                        <p class="text-xs">Immediate chat alerts when targeted</p>
+                      </div>
+                      <span class="badge premium">Premium</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 3: AI COPILOT CHAT -->
+          <div class="tab-content" id="tabCopilot">
+            <div class="copilot-container">
+              <div class="copilot-panel">
+                <div class="copilot-header">
+                  <div class="agent-avatar">🧹</div>
+                  <div class="agent-info">
+                    <h3>Safesweep AI Agent</h3>
+                    <span class="agent-status"><span class="pulse-dot-green"></span> Online & Listening</span>
+                  </div>
+                </div>
+                
+                <div class="copilot-chat" id="copilotChat">
+                  <div class="chat-message agent">
+                    <p>🧹 Welcome to **Safesweep**! 👋<br/><br/>I'm your AI Wallet Optimizer & Phishing Shield for OKX Wallet — helping you clean up dust assets and block malicious spam in one click! 🛡️<br/><br/>What would you like to do today?</p>
+                    <div class="message-actions">
+                      <button class="suggestion-btn" data-action="sweep">🧹 Sweep Dust</button>
+                      <button class="suggestion-btn" data-action="shield">🛡️ Scan Threats</button>
+                      <button class="suggestion-btn" data-action="monetize">💰 Monetization Info</button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="copilot-input-area">
+                  <input type="text" id="copilotInput" placeholder="Ask Safesweep Agent (e.g. 'sweep', 'shield', 'how do you monetize?')..." />
+                  <button class="send-btn" id="copilotSendBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="22" y1="2" x2="11" y2="13"/>
+                      <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 4: REVENUE ANALYTICS -->
+          <div class="tab-content" id="tabRevenue">
+            <div class="revenue-grid">
+              <div class="revenue-main">
+                <div class="stats-row">
+                  <div class="stat-card">
+                    <span>Total Volume Swept</span>
+                    <h3 id="statTotalVolume">$1,284,591.00</h3>
+                    <p class="positive">+12.4% this week</p>
+                  </div>
+                  <div class="stat-card">
+                    <span>Protocol Fees (1% tax)</span>
+                    <h3 id="statProtocolFees">$12,845.91</h3>
+                    <p class="positive">+10.2% this week</p>
+                  </div>
+                  <div class="stat-card">
+                    <span>Premium Subscriptions</span>
+                    <h3 id="statPremiumSubs">1,482 Active</h3>
+                    <p class="positive">$7,395.18 MRR</p>
+                  </div>
+                </div>
+
+                <div class="panel-card mb-4">
+                  <div class="panel-header">
+                    <h3>Protocol Revenue Stream</h3>
+                    <span class="badge">LIVE METRICS</span>
+                  </div>
+                  <p class="panel-description text-sm">Demonstrating our micro-monetization architecture for the OKX Hackathon. This shows the real-time cashflow generated by our dust-sweeping fees and subscription plans.</p>
+                  
+                  <div class="chart-placeholder">
+                    <div class="revenue-chart-bars">
+                      <div class="chart-bar-container"><div class="chart-bar" style="height: 45%;"></div><span>Jan</span></div>
+                      <div class="chart-bar-container"><div class="chart-bar" style="height: 55%;"></div><span>Feb</span></div>
+                      <div class="chart-bar-container"><div class="chart-bar" style="height: 70%;"></div><span>Mar</span></div>
+                      <div class="chart-bar-container"><div class="chart-bar" style="height: 60%;"></div><span>Apr</span></div>
+                      <div class="chart-bar-container"><div class="chart-bar" style="height: 85%;"></div><span>May</span></div>
+                      <div class="chart-bar-container"><div class="chart-bar active" style="height: 95%;"></div><span>Jun</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="revenue-aside">
+                <div class="panel-card">
+                  <h3>Hackathon Submission Details</h3>
+                  <p class="text-sm text-muted mb-3">Safesweep aligns AI utility with blockchain monetization. By implementing a sustainable 1% sweep fee and premium shielding subscriptions, the agent funds its own operational costs and rewards developers/liquidity providers.</p>
+                  
+                  <h4>Key Features Verified</h4>
+                  <ul class="verification-list">
+                    <li>
+                      <span class="bullet green">✓</span>
+                      <div>
+                        <h5>X Layer Compatibility</h5>
+                        <p class="text-xs">Built for OKX's high-speed L2</p>
+                      </div>
+                    </li>
+                    <li>
+                      <span class="bullet green">✓</span>
+                      <div>
+                        <h5>OKX Wallet Integrated</h5>
+                        <p class="text-xs">Supports wallet authorization</p>
+                      </div>
+                    </li>
+                    <li>
+                      <span class="bullet green">✓</span>
+                      <div>
+                        <h5>A2A Payment Standard</h5>
+                        <p class="text-xs">Allows machine-speed micro-fees</p>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+
+    <!-- IMMERSIVE SWEEPER DIALOG -->
+    <div class="modal-overlay" id="sweepModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Safesweep AI Agent Action</h3>
+          <button class="close-btn" id="closeSweepModalBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="agent-animation">
+            <div class="agent-orb pulse">🧹</div>
+            <div class="agent-waves">
+              <span class="wave w1"></span>
+              <span class="wave w2"></span>
+              <span class="wave w3"></span>
+            </div>
+          </div>
+          
+          <div class="console-box" id="sweepConsole">
+            <!-- Populated during execution -->
+          </div>
+
+          <div class="modal-success-screen" id="sweepSuccessScreen">
+            <div class="success-icon">✓</div>
+            <h3>Sweep Completed Successfully!</h3>
+            <p>Swept tokens have been batch-swapped into <strong id="successYieldAmount">0.0062 OKB</strong>.</p>
+            <div class="hash-row">
+              <span>Tx Hash:</span>
+              <code id="successTxHash">0x7b4a...92e1</code>
+            </div>
+            <button class="action-btn-primary mt-4" id="btnFinishSweep">Clean Wallet Completed</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PREMIUM UPGRADE DIALOG -->
+    <div class="modal-overlay" id="premiumModal">
+      <div class="modal-card premium-modal-card">
+        <div class="modal-header">
+          <h3>Upgrade to Safesweep Premium</h3>
+          <button class="close-btn" id="closePremiumModalBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="premium-badge-icon">💎</div>
+          <p class="premium-desc">Unlock real-time mempool protection, automated RPC blocklists, and direct XMTP threat notifications.</p>
+          
+          <div class="pricing-options">
+            <button class="pricing-card active" id="btnPayOKB">
+              <span class="option-title">0.1 OKB</span>
+              <span class="option-sub">One-Month License</span>
+            </button>
+            <button class="pricing-card" id="btnPayUSDT">
+              <span class="option-title">$4.99 USDT</span>
+              <span class="option-sub">One-Month License</span>
+            </button>
+          </div>
+
+          <div class="payment-action-area">
+            <button class="action-btn-primary full-width" id="btnConfirmPayment">Authorize Payment via OKX Wallet</button>
+            <p class="text-xs text-muted text-center mt-2">Requires one-time transaction signature on X Layer network.</p>
+          </div>
+
+          <div class="payment-processing" id="paymentProcessing">
+            <div class="spinner"></div>
+            <p>Processing on-chain subscription payment...</p>
+          </div>
+
+          <div class="payment-success" id="paymentSuccess">
+            <div class="success-icon">✓</div>
+            <h3>Safesweep Premium Active!</h3>
+            <p>You have unlocked complete real-time mempool scanning and threat monitoring.</p>
+            <button class="action-btn-primary mt-4" id="btnDismissPremiumSuccess">Back to Dashboard</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

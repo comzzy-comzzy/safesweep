@@ -25,6 +25,10 @@
   --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-display: 'Plus Jakarta Sans', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+  
+  --shadow-sm: 0 2px 8px rgba(147, 51, 234, 0.03);
+  --shadow-md: 0 8px 30px rgba(147, 51, 234, 0.05);
+  --shadow-lg: 0 16px 40px rgba(147, 51, 234, 0.08);
 }
 
 /* --- Base & Reset --- */
@@ -36,17 +40,92 @@
 
 body {
   font-family: var(--font-sans);
-  background: var(--bg);
+  background-color: var(--bg);
   color: var(--text);
   line-height: 1.6;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  position: relative;
+  min-height: 100vh;
+  
+  /* Unique Background Grid Pattern (SaaS style) */
+  background-image: 
+    linear-gradient(rgba(147, 51, 234, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(147, 51, 234, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: center top;
+}
+
+/* Floating Radial Glow Blobs in Background */
+body::before {
+  content: "";
+  position: fixed;
+  top: -15%;
+  left: -15%;
+  width: 50vw;
+  height: 50vh;
+  background: radial-gradient(circle, rgba(147, 51, 234, 0.08) 0%, rgba(147, 51, 234, 0) 70%);
+  pointer-events: none;
+  z-index: -1;
+  animation: floatGlow 20s ease-in-out infinite alternate;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  bottom: -20%;
+  right: -10%;
+  width: 60vw;
+  height: 60vh;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0) 70%);
+  pointer-events: none;
+  z-index: -1;
+  animation: floatGlowAlt 25s ease-in-out infinite alternate;
 }
 
 .wrap {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 24px;
+}
+
+/* --- Keyframe Animations --- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes floatGlow {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(50px, 30px) scale(1.1); }
+}
+
+@keyframes floatGlowAlt {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-60px, -40px) scale(1.15); }
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+@keyframes logoFloat {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-2px) rotate(3deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
 }
 
 /* --- Typography --- */
@@ -87,18 +166,20 @@ p {
   font-size: 0.88rem;
   text-decoration: none;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   border: 2px solid transparent;
 }
 
 .btn-accent {
   background: var(--accent);
   color: #ffffff;
+  box-shadow: 0 4px 14px rgba(147, 51, 234, 0.15);
 }
 
 .btn-accent:hover {
   background: var(--accent-hover);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(147, 51, 234, 0.25);
 }
 
 .btn-outline-accent {
@@ -110,6 +191,7 @@ p {
 .btn-outline-accent:hover {
   background: var(--accent);
   color: #ffffff;
+  transform: translateY(-1px);
 }
 
 .btn-sm {
@@ -128,20 +210,25 @@ p {
   padding: 6px 14px;
   border-radius: 6px;
   font-size: 0.8rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-copy:hover {
   border-color: var(--accent);
   color: var(--accent);
+  transform: translateY(-1px);
 }
 
-/* --- Layout Elements (Apex Orbit templates) --- */
+/* --- Navigation Bar --- */
 header.standard-nav {
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 100;
+  box-shadow: 0 1px 10px rgba(0, 0, 0, 0.01);
+  animation: fadeIn 0.5s ease-out;
 }
 
 .standard-nav .wrap {
@@ -159,10 +246,12 @@ header.standard-nav {
   font-size: 1.25rem;
   font-weight: 800;
   color: var(--text);
+  cursor: pointer;
 }
 
 .logo-icon {
   flex-shrink: 0;
+  animation: logoFloat 4s ease-in-out infinite;
 }
 
 .standard-nav ul.nav-links {
@@ -181,12 +270,12 @@ header.standard-nav {
   padding: 8px 16px;
   border-radius: 30px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s ease;
 }
 
 .nav-link-btn:hover {
   color: var(--text);
-  background: var(--bg);
+  background: rgba(147, 51, 234, 0.04);
 }
 
 .nav-link-btn.active {
@@ -206,7 +295,7 @@ header.standard-nav {
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  background: var(--bg);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 30px;
   font-family: var(--font-sans);
@@ -220,6 +309,8 @@ header.standard-nav {
   height: 8px;
   border-radius: 50%;
   background-color: var(--accent2);
+  display: inline-block;
+  animation: pulseGlow 2s infinite;
 }
 
 .connect-wallet-btn {
@@ -235,19 +326,21 @@ header.standard-nav {
   font-size: 0.88rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease-in-out;
 }
 
 .connect-wallet-btn:hover {
   background: var(--accent);
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.2);
 }
 
 /* --- Hero Section --- */
 .hero.layout-centered {
-  padding: 70px 0 45px;
+  padding: 60px 0 40px;
   text-align: center;
   border-bottom: 1px solid var(--border);
+  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .hero.layout-centered h1 {
@@ -260,6 +353,19 @@ header.standard-nav {
 
 .hero.layout-centered h1 span {
   color: var(--accent);
+  position: relative;
+  display: inline-block;
+}
+
+.hero.layout-centered h1 span::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: hsla(295, 75%, 45%, 0.15);
+  border-radius: 2px;
 }
 
 .hero.layout-centered p {
@@ -283,11 +389,6 @@ header.standard-nav {
   margin-bottom: 16px;
 }
 
-.badge-accent {
-  background: hsla(150, 80%, 35%, 0.08);
-  color: var(--accent2);
-}
-
 /* --- Wallet Status Panel --- */
 .wallet-status-panel {
   max-width: 750px;
@@ -296,7 +397,14 @@ header.standard-nav {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s ease;
+}
+
+.wallet-status-panel:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent);
 }
 
 .wallet-info-row {
@@ -337,7 +445,8 @@ header.standard-nav {
 
 /* --- Grid System --- */
 .section-centered {
-  padding: 50px 0 80px;
+  padding: 40px 0 80px;
+  animation: fadeIn 0.8s ease-out;
 }
 
 .grid-3 {
@@ -362,7 +471,13 @@ header.standard-nav {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 30px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-item:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
 }
 
 .card-accent-top {
@@ -398,6 +513,11 @@ header.standard-nav {
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 24px;
+  transition: border-color 0.25s;
+}
+
+.sandbox-scanner-card:hover {
+  border-color: var(--accent);
 }
 
 .scanner-desc {
@@ -420,10 +540,12 @@ header.standard-nav {
   font-size: 0.9rem;
   color: var(--text);
   outline: none;
+  transition: border-color 0.25s, box-shadow 0.25s;
 }
 
 .scanner-controls input:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px hsla(295, 75%, 45%, 0.08);
 }
 
 /* --- Dust Table & Lists --- */
@@ -456,6 +578,11 @@ header.standard-nav {
   font-family: var(--font-sans);
   font-size: 0.92rem;
   vertical-align: middle;
+  transition: background-color 0.2s;
+}
+
+.dust-table tbody tr {
+  transition: background-color 0.2s, transform 0.2s;
 }
 
 .dust-table tbody tr:hover {
@@ -501,16 +628,18 @@ header.standard-nav {
   background-color: var(--surface);
   border: 2px solid var(--border);
   border-radius: 4px;
-  transition: all 0.15s;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .checkbox-container:hover input ~ .checkmark {
   border-color: var(--accent);
+  transform: scale(1.05);
 }
 
 .checkbox-container input:checked ~ .checkmark {
   background-color: var(--accent);
   border-color: var(--accent);
+  transform: scale(1);
 }
 
 .checkmark:after {
@@ -554,6 +683,11 @@ header.standard-nav {
   font-size: 0.8rem;
   color: var(--accent);
   flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.token-cell:hover .token-icon {
+  transform: scale(1.1);
 }
 
 .token-name-wrap {
@@ -587,6 +721,11 @@ header.standard-nav {
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
+  transition: transform 0.2s;
+}
+
+.security-tag:hover {
+  transform: scale(1.05);
 }
 
 .security-tag.clean {
@@ -629,10 +768,12 @@ header.standard-nav {
   color: var(--text);
   outline: none;
   cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .control-group select:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px hsla(295, 75%, 45%, 0.08);
 }
 
 /* --- Sweep Summary Panel --- */
@@ -727,6 +868,11 @@ header.standard-nav {
   border: 1px solid var(--border);
   border-radius: 8px;
   margin-bottom: 24px;
+  transition: border-color 0.25s;
+}
+
+.switch-card:hover {
+  border-color: var(--accent2);
 }
 
 .switch-info h4 {
@@ -758,7 +904,7 @@ header.standard-nav {
   cursor: pointer;
   inset: 0;
   background-color: var(--border);
-  transition: .2s;
+  transition: .25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .slider:before {
@@ -769,7 +915,7 @@ header.standard-nav {
   left: 4px;
   bottom: 4px;
   background-color: white;
-  transition: .2s;
+  transition: .25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 input:checked + .slider {
@@ -794,6 +940,11 @@ input:checked + .slider:before {
   border: 1px dashed var(--accent);
   border-radius: 8px;
   padding: 20px;
+  transition: transform 0.25s;
+}
+
+.premium-badge-box:hover {
+  transform: scale(1.01);
 }
 
 .premium-header {
@@ -807,13 +958,18 @@ input:checked + .slider:before {
   font-size: 1.1rem;
 }
 
-/* --- Tab Control logic --- */
+/* --- Tab Control Logic with Smooth Transitions --- */
 .tab-content {
   display: none;
+  opacity: 0;
+  transform: translateY(15px);
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .tab-content.active {
   display: block;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .hidden {
@@ -866,6 +1022,7 @@ input:checked + .slider:before {
   height: 6px;
   border-radius: 50%;
   background-color: var(--accent2);
+  animation: pulseGlow 1.8s infinite;
 }
 
 .copilot-chat {
@@ -885,6 +1042,7 @@ input:checked + .slider:before {
   display: flex;
   flex-direction: column;
   max-width: 85%;
+  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .chat-message.agent {
@@ -899,6 +1057,7 @@ input:checked + .slider:before {
   padding: 12px 16px;
   border-radius: 12px;
   font-size: 0.92rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .chat-message.agent .msg-content {
@@ -931,13 +1090,15 @@ input:checked + .slider:before {
   padding: 6px 12px;
   border-radius: 20px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-sm);
 }
 
 .suggestion-btn:hover {
   border-color: var(--accent);
   color: var(--accent);
   background: hsla(295, 75%, 45%, 0.04);
+  transform: translateY(-1px);
 }
 
 .copilot-input-area {
@@ -954,10 +1115,12 @@ input:checked + .slider:before {
   font-family: var(--font-sans);
   font-size: 0.95rem;
   outline: none;
+  transition: border-color 0.25s, box-shadow 0.25s;
 }
 
 .copilot-input-area input:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px hsla(295, 75%, 45%, 0.08);
 }
 
 /* --- Analytics panel metrics --- */
@@ -986,6 +1149,11 @@ input:checked + .slider:before {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 20px;
+  transition: border-color 0.25s;
+}
+
+.feature-detail-card:hover {
+  border-color: var(--accent);
 }
 
 .feature-detail-card h4 {
@@ -1002,14 +1170,14 @@ input:checked + .slider:before {
   position: fixed;
   inset: 0;
   background: rgba(10, 14, 12, 0.4);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s ease-out;
+  transition: opacity 0.3s ease-out;
 }
 
 .modal-overlay.active {
@@ -1024,13 +1192,13 @@ input:checked + .slider:before {
   width: 100%;
   max-width: 500px;
   padding: 24px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  transform: translateY(20px);
-  transition: transform 0.25s ease-out;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  transform: scale(0.95) translateY(15px);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .modal-overlay.active .modal-card {
-  transform: translateY(0);
+  transform: scale(1) translateY(0);
 }
 
 .modal-header {
@@ -1054,10 +1222,11 @@ input:checked + .slider:before {
   color: var(--muted);
   cursor: pointer;
   line-height: 1;
+  transition: color 0.15s;
 }
 
 .close-btn:hover {
-  color: var(--text);
+  color: var(--state-malicious);
 }
 
 /* Modal Body elements */
@@ -1095,6 +1264,7 @@ input:checked + .slider:before {
 
 .log-entry {
   line-height: 1.4;
+  animation: fadeIn 0.2s ease-out;
 }
 
 .log-entry.info { color: var(--text); }
@@ -1115,17 +1285,21 @@ input:checked + .slider:before {
   padding: 16px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s;
   outline: none;
 }
 
 .pricing-card:hover {
   border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .pricing-card.active {
   border-color: var(--accent);
   background: hsla(295, 75%, 45%, 0.03);
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 .price-duration {
@@ -1173,6 +1347,7 @@ footer {
   padding: 40px 0;
   border-top: 1px solid var(--border);
   background: var(--surface);
+  margin-top: 40px;
 }
 
 footer p {
@@ -1189,12 +1364,28 @@ footer p {
 @media (max-width: 768px) {
   .hero.layout-centered h1 { font-size: 2.2rem; }
   .grid-3, .grid-2 { grid-template-columns: 1fr; }
+  
+  /* Fix logo layout on mobile: push it to the left hand side always */
   .standard-nav .wrap {
     flex-direction: column;
+    align-items: flex-start; /* Aligns all children (logo, nav-links, actions) to the left side */
     height: auto;
     padding: 16px 24px;
     gap: 12px;
   }
+  
+  .standard-nav .logo {
+    align-self: flex-start; /* Guarantees the brand logo stays pinned to the left margin */
+    margin-bottom: 4px;
+  }
+  
+  .standard-nav ul.nav-links {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    justify-content: flex-start;
+  }
+  
   .header-actions {
     width: 100%;
     justify-content: space-between;

@@ -261,9 +261,8 @@ async function scanAddressAssets(address, chainId) {
     const nativePrice = await getTokenPrice(state.nativeSymbol);
     const nativeValueUsd = state.nativeAssetBalance * nativePrice;
     
-    if (nativeValueUsd >= 5.0) {
-      state.balance += nativeValueUsd;
-    } else if (state.nativeAssetBalance > 0) {
+    state.balance += nativeValueUsd;
+    if (nativeValueUsd < 5.0 && state.nativeAssetBalance > 0) {
       state.dustAssets.push({
         id: 'native_dust',
         symbol: state.nativeSymbol,
@@ -314,9 +313,8 @@ async function scanAddressAssets(address, chainId) {
           date: new Date().toISOString().split('T')[0]
         });
       } else {
-        if (usdValue >= 5.0) {
-          state.balance += usdValue;
-        } else {
+        state.balance += usdValue;
+        if (usdValue < 5.0) {
           state.dustAssets.push({
             id: token.address,
             symbol: token.symbol,
@@ -396,9 +394,8 @@ async function scanAddressAssets(address, chainId) {
           const price = await getTokenPrice(symbol);
           const usdValue = balanceFloat * price;
           
-          if (usdValue >= 5.0) {
-            state.balance += usdValue;
-          } else {
+          state.balance += usdValue;
+          if (usdValue < 5.0) {
             state.dustAssets.push({
               id: contractAddr,
               symbol: symbol,

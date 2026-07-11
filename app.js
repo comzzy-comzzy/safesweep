@@ -11,9 +11,8 @@ const state = {
   selectedDustIds: new Set(),
   autoShieldActive: true,
   isPremium: localStorage.getItem('safesweep_isPremium') === 'true',
-  protocolFeesCollected: parseFloat(localStorage.getItem('safesweep_fees') || '3.42'),
-  totalVolumeSwept: parseFloat(localStorage.getItem('safesweep_volume') || '342.10'),
-  premiumSubscriptions: 14,
+  protocolFeesCollected: parseFloat(localStorage.getItem('safesweep_fees') || '0.00'),
+  totalVolumeSwept: parseFloat(localStorage.getItem('safesweep_volume') || '0.00'),
   
   // Dynamic lists populated via on-chain RPC scans
   dustAssets: [],
@@ -134,7 +133,7 @@ function initCopyWalletAddress() {
     if (state.walletAddress === 'Not Connected') return;
     navigator.clipboard.writeText(state.walletAddress).then(() => {
       const originalHTML = btn.innerHTML;
-      btn.innerHTML = `<span style="color: var(--brand-green); font-size: 11px; font-weight: bold;">✓</span>`;
+      btn.innerHTML = `<span style="color: var(--accent2); font-size: 11px; font-weight: bold;">Copied</span>`;
       setTimeout(() => btn.innerHTML = originalHTML, 1500);
     });
   });
@@ -462,6 +461,7 @@ function updateUI() {
   // Update Analytics Metrics if present
   if ($('totalSweptValueUSD')) $('totalSweptValueUSD').textContent = `$${state.totalVolumeSwept.toFixed(2)}`;
   if ($('activeShieldCount')) $('activeShieldCount').textContent = `$${state.protocolFeesCollected.toFixed(2)}`;
+  if ($('premiumUsersCount')) $('premiumUsersCount').textContent = state.isPremium ? '1 Subscribed' : '0 Subscribed';
   
   // If we are on index.html (Dust Sweeper page) and we don't have dustTableBody, we STILL want to auto-select all tokens and update the Sweep Optimizer Summary!
   if (!$('dustTableBody') && $('btnSweepNow')) {
@@ -476,13 +476,13 @@ function renderDustTable() {
   tbody.innerHTML = '';
   
   if (state.walletAddress === 'Not Connected') {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--muted); padding: 48px 0;">🔌 Please Connect OKX Wallet or enter an address in the Sandbox Scanner to pull active tokens.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--muted); padding: 48px 0;">Please Connect OKX Wallet or enter an address in the Sandbox Scanner to pull active tokens.</td></tr>`;
     if ($('dustBadge')) $('dustBadge').style.display = 'none';
     return;
   }
   
   if (state.dustAssets.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--muted); padding: 48px 0;">No dust assets found on-chain for this address. Wallet is clean! 🧹</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--muted); padding: 48px 0;">No dust assets found on-chain for this address. Wallet is clean!</td></tr>`;
     if ($('dustBadge')) $('dustBadge').style.display = 'none';
     return;
   }
@@ -652,11 +652,11 @@ function renderPhishingShield() {
     if (tbody) {
       tbody.innerHTML = '';
       if (state.walletAddress === 'Not Connected') {
-        tbody.innerHTML = `<tr><td colspan="5" class="empty-state">🔌 Please Connect OKX Wallet to fetch live assets.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Please Connect OKX Wallet to fetch live assets.</td></tr>`;
         return;
       }
       if (state.phishingTokens.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No malicious tokens found on-chain. Safe and shielded! 🛡️</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No malicious tokens found on-chain. Safe and shielded.</td></tr>`;
         return;
       }
       
@@ -667,7 +667,7 @@ function renderPhishingShield() {
         tr.innerHTML = `
           <td>
             <div class="token-cell">
-              <div class="token-icon" style="background-color: var(--state-malicious-bg); color: var(--state-malicious);">💀</div>
+              <div class="token-icon" style="background-color: var(--state-malicious-bg); color: var(--state-malicious); font-size: 0.75rem; font-weight: bold;">SPAM</div>
               <div class="token-name-wrap">
                 <span class="token-symbol">${item.symbol}</span>
                 <span class="token-fullname">${item.name}</span>
@@ -690,11 +690,11 @@ function renderPhishingShield() {
     if (grid) {
       grid.innerHTML = '';
       if (state.walletAddress === 'Not Connected') {
-        grid.innerHTML = `<p class="empty-state">🔌 Please Connect OKX Wallet to fetch live assets.</p>`;
+        grid.innerHTML = `<p class="empty-state">Please Connect OKX Wallet to fetch live assets.</p>`;
         return;
       }
       if (state.phishingNfts.length === 0) {
-        grid.innerHTML = `<p class="empty-state">No spam NFTs found in recent transfer logs. Safe and shielded! 🛡️</p>`;
+        grid.innerHTML = `<p class="empty-state">No spam NFTs found in recent transfer logs. Safe and shielded.</p>`;
         return;
       }
       
@@ -703,7 +703,7 @@ function renderPhishingShield() {
         card.className = 'card-item nft-threat-card';
         card.style.position = 'relative';
         card.innerHTML = `
-          <div class="nft-image-placeholder" style="background: var(--bg); height: 120px; display: flex; align-items: center; justify-content: center; font-size: 2rem; border-radius: 6px; margin-bottom: 12px;">🖼️</div>
+          <div class="nft-image-placeholder" style="background: var(--bg); height: 120px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; border-radius: 6px; margin-bottom: 12px; color: var(--muted);">NFT</div>
           <h4 style="margin-bottom: 4px;">${item.symbol}</h4>
           <p class="security-tag malicious" style="display: inline-block; margin-bottom: 8px;">${item.threatScore}% AI Threat</p>
           <p class="text-caption" style="text-align: left; font-size: 0.8rem;">${item.reason}</p>
@@ -752,7 +752,7 @@ window.isolateAsset = function(id, tab) {
   
   const toast = document.createElement('div');
   toast.style.cssText = 'position: fixed; bottom: 24px; right: 24px; background: var(--state-success); color: #000; padding: 12px 24px; border-radius: 8px; font-weight: bold; z-index: 200; box-shadow: 0 4px 15px rgba(0,0,0,0.3);';
-  toast.textContent = 'Spam hidden and RPC calls blocked! 🛡️';
+  toast.textContent = 'Spam hidden and RPC calls blocked.';
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 2500);
   
@@ -1183,8 +1183,8 @@ function getAgentResponse(query) {
   if (q.includes('sweep') || q === '1') {
     if (state.walletAddress === 'Not Connected') {
       return {
-        text: '❌ **Wallet not connected!**\n\nPlease connect your wallet in the dashboard or enter an address in the Sandbox Scanner so I can retrieve your real assets on-chain.',
-        actions: [{ label: 'Scan Vitalik Address', query: 'sandbox' }]
+        text: 'Wallet not connected!\n\nPlease connect your wallet in the dashboard or enter an address in the Sandbox Scanner so I can retrieve your real assets on-chain.',
+        actions: [{ label: 'Scan Address', query: 'sandbox' }]
       };
     }
     
@@ -1197,13 +1197,13 @@ function getAgentResponse(query) {
     
     if (state.dustAssets.length === 0) {
       return {
-        text: '🧹 **Safesweep Dust Sweeper**\n\nI scanned your wallet and found **0 dust assets** on-chain. Your wallet is perfectly optimized!',
+        text: 'Safesweep Dust Sweeper\n\nI scanned your wallet and found 0 dust assets on-chain. Your wallet is perfectly optimized!',
         actions: [{ label: 'Main Menu', query: 'start' }]
       };
     }
     
     return {
-      text: `🧹 **Safesweep Dust Sweeper**\n\nI detected the following low-value assets on-chain:\n${listText}\n**Total Dust Value:** $${total.toFixed(2)}\n**Aggregated batch fee (Est.):** $0.05\n**Safesweep developer fee (1%):** $${(total * 0.01).toFixed(4)}\n\nWould you like to initiate the on-chain batch sweep transaction?`,
+      text: `Safesweep Dust Sweeper\n\nI detected the following low-value assets on-chain:\n${listText}\n**Total Dust Value:** $${total.toFixed(2)}\n**Aggregated batch fee (Est.):** $0.05\n**Safesweep developer fee (1%):** $${(total * 0.01).toFixed(4)}\n\nWould you like to initiate the on-chain batch sweep transaction?`,
       actions: [
         { label: 'Confirm Sweep', query: 'confirm sweep' },
         { label: 'How fees work', query: 'monetize' }
@@ -1213,14 +1213,14 @@ function getAgentResponse(query) {
   
   if (q.includes('confirm') || q.includes('execute')) {
     if (state.walletAddress === 'Not Connected' || state.dustAssets.length === 0) {
-      return { text: '❌ No assets selected for sweep. Please run scanning first.', actions: [{ label: 'Main Menu', query: 'start' }] };
+      return { text: 'No assets selected for sweep. Please run scanning first.', actions: [{ label: 'Main Menu', query: 'start' }] };
     }
     
     let total = 0;
     state.dustAssets.forEach(t => total += t.value);
     
     return {
-      text: `⚙️ **Processing Safesweep Batch Swap...**\n• Initiating approvals...\n• Aggregating on-chain DEX routes...\n• Broadcast transaction verified.\n\n🎉 **Sweep Successful!**\nConverted selected dust assets into target token! Your wallet is now clean and gas optimized.\n\nType \`/start\` to return to the main menu.`,
+      text: `Processing Safesweep Batch Swap...\n• Initiating approvals...\n• Aggregating on-chain DEX routes...\n• Broadcast transaction verified.\n\nSweep Successful!\nConverted selected dust assets into target token! Your wallet is now clean and gas optimized.\n\nType \`/start\` to return to the main menu.`,
       actions: [{ label: 'Scan Phishing Shield', query: 'shield' }]
     };
   }
@@ -1228,8 +1228,8 @@ function getAgentResponse(query) {
   if (q.includes('shield') || q.includes('phish') || q === '2') {
     if (state.walletAddress === 'Not Connected') {
       return {
-        text: '❌ **Wallet not connected!**\n\nPlease connect your wallet in the dashboard or enter an address in the Sandbox Scanner to scan active phishing vectors.',
-        actions: [{ label: 'Scan Vitalik Address', query: 'sandbox' }]
+        text: 'Wallet not connected!\n\nPlease connect your wallet in the dashboard or enter an address in the Sandbox Scanner to scan active phishing vectors.',
+        actions: [{ label: 'Scan Address', query: 'sandbox' }]
       };
     }
     
@@ -1240,13 +1240,13 @@ function getAgentResponse(query) {
     
     if (state.phishingTokens.length === 0) {
       return {
-        text: '🛡️ **Phishing Shield & Spam Scan**\n\nI completed the on-chain scan of your wallet address and found **0 phishing threat contracts**. Security index remains high!',
+        text: 'Phishing Shield & Spam Scan\n\nI completed the on-chain scan of your wallet address and found 0 phishing threat contracts. Security index remains high!',
         actions: [{ label: 'Main Menu', query: 'start' }]
       };
     }
     
     return {
-      text: `🛡️ **Phishing Shield & Spam Scan**\n\nI detected the following active spam/honeypot tokens in your transaction logs:\n\n${listText}\n\n✅ These assets have been isolated and hidden. Do NOT interact with or transfer them.`,
+      text: `Phishing Shield & Spam Scan\n\nI detected the following active spam/honeypot tokens in your transaction logs:\n\n${listText}\n\nThese assets have been isolated and hidden. Do NOT interact with or transfer them.`,
       actions: [
         { label: 'View spam vault', query: 'view hidden' },
         { label: 'Enable Auto-Shield', query: 'auto shield on' }
@@ -1256,25 +1256,25 @@ function getAgentResponse(query) {
   
   if (q.includes('auto shield')) {
     return {
-      text: `🛡️ **Phishing Auto-Shield Activated!**\n\nSafesweep is actively listening to the mempool logs. Any incoming spam tokens sent to your address will be automatically identified and isolated.`,
+      text: `Phishing Auto-Shield Activated!\n\nSafesweep is actively listening to the mempool logs. Any incoming spam tokens sent to your address will be automatically identified and isolated.`,
       actions: [{ label: 'Main Menu', query: 'start' }]
     };
   }
   
   if (q.includes('sandbox')) {
     setTimeout(async () => {
-      $('sandboxAddressInput').value = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
-      $('btnSandboxScan').click();
+      if ($('sandboxAddressInput')) $('sandboxAddressInput').value = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
+      if ($('btnSandboxScan')) $('btnSandboxScan').click();
     }, 100);
     return {
-      text: '⚙️ **Loading public Sandbox scanner...**\nRunning dynamic on-chain balance and log scan for address `0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045` on Ethereum Mainnet...',
+      text: 'Loading public Sandbox scanner...\nRunning dynamic on-chain balance and log scan for address `0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045` on Ethereum Mainnet...',
       actions: []
     };
   }
   
   if (q.includes('monetize') || q.includes('fee') || q === '3') {
     return {
-      text: `💰 **Safesweep Monetization Model**\n\nTo fund real-time protection, Safesweep implements two main models:\n\n1️⃣ **The Sweep Tax (1%):**\nWe deduct 1% of swept dust value. You still save up to 80% on gas compared to individual swaps.\n\n2️⃣ **Safesweep Premium ($4.99/mo or 0.1 OKB):**\nUnlocks real-time mempool scanning, RPC-level honeypot blocks, and instant threat alert notifications.`,
+      text: `Safesweep Monetization Model\n\nTo fund real-time protection, Safesweep implements two main models:\n\n1. **The Sweep Tax (1%):**\nWe deduct 1% of swept dust value. You still save up to 80% on gas compared to individual swaps.\n\n2. **Safesweep Premium ($4.99/mo or 0.1 OKB):**\nUnlocks real-time mempool scanning, RPC-level honeypot blocks, and instant threat alert notifications.`,
       actions: [
         { label: 'Upgrade Premium', query: 'upgrade' },
         { label: 'Main Menu', query: 'start' }
@@ -1284,7 +1284,7 @@ function getAgentResponse(query) {
   
   if (q.includes('upgrade') || q.includes('premium')) {
     return {
-      text: `💎 **Upgrade to Safesweep Premium**\n\nGet 24/7 real-time protection, automated RPC blocklists, and instant XMTP alerts!\n\nTo simulate payment transaction, type **"pay 0.1 OKB"**!`,
+      text: `Upgrade to Safesweep Premium\n\nGet 24/7 real-time protection, automated RPC blocklists, and instant XMTP alerts!\n\nTo simulate payment transaction, type **"pay 0.1 OKB"**!`,
       actions: [
         { label: 'Pay 0.1 OKB', query: 'pay 0.1 OKB' }
       ]
@@ -1293,18 +1293,18 @@ function getAgentResponse(query) {
   
   if (q.includes('pay 0.1 okb')) {
     setTimeout(() => {
-      $('sidebarUpgradeBtn').click();
+      if ($('sidebarUpgradeBtn')) $('sidebarUpgradeBtn').click();
     }, 100);
-    return { text: '⚙️ Dispatching subscription payment to your OKX Wallet...', actions: [] };
+    return { text: 'Dispatching subscription payment to your OKX Wallet...', actions: [] };
   }
   
   // Default Start Menu
   return {
-    text: `🧹 Welcome to **Safesweep**! 👋\n\nI'm your AI Wallet Optimizer & Phishing Shield for OKX Wallet — helping you clean up dust assets and block malicious spam in one click! 🛡️\n\nWhat would you like to do today?\n\n1️⃣ 🧹 **Sweep Dust** — Convert low-value tokens into OKB or USDT in a single batch transaction.\n2️⃣ 🛡️ **Scan Phishing Threats** — Detect and auto-hide malicious spam tokens and phishy NFTs.\n3️⃣ 💰 **Monetization Info** — See how Safesweep generates revenue.\n4️⃣ ⚙️ **Configure Shield** — Manage shield options.\n5️⃣ 🧠 **Wallet Safety Check** — Take a 3-question security quiz.`,
+    text: `Welcome to Safesweep!\n\nI'm your AI Wallet Optimizer & Phishing Shield for OKX Wallet — helping you clean up dust assets and block malicious spam in one click!\n\nWhat would you like to do today?\n\n1. **Sweep Dust** — Convert low-value tokens into OKB or USDT in a single batch transaction.\n2. **Scan Phishing Threats** — Detect and auto-hide malicious spam tokens and phishy NFTs.\n3. **Monetization Info** — See how Safesweep generates revenue.\n4. **Configure Shield** — Manage shield options.\n5. **Wallet Safety Check** — Take a 3-question security quiz.`,
     actions: [
-      { label: '🧹 Sweep Dust', query: 'sweep' },
-      { label: '🛡️ Scan Threats', query: 'shield' },
-      { label: '💰 Monetization Info', query: 'monetize' }
+      { label: 'Sweep Dust', query: 'sweep' },
+      { label: 'Scan Threats', query: 'shield' },
+      { label: 'Monetization Info', query: 'monetize' }
     ]
   };
 }

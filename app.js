@@ -86,7 +86,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (state.walletAddress !== 'Not Connected') {
     if ($('walletNetwork')) $('walletNetwork').textContent = state.network;
     if ($('walletAddress')) $('walletAddress').textContent = `${state.walletAddress.substring(0, 6)}...${state.walletAddress.substring(38)}`;
-    if ($('connectWalletBtn')) $('connectWalletBtn').innerHTML = `<span>CONNECTED</span>`;
+    const connBtn = $('connectWalletBtn');
+    if (connBtn) {
+      connBtn.innerHTML = `<span>Disconnect</span>`;
+      connBtn.title = `Connected: ${state.walletAddress}`;
+    }
     
     // Auto-scan on-chain details
     const chainId = state.network.includes('X Layer') ? 195 : 1;
@@ -767,9 +771,52 @@ window.reportSpam = function(symbol) {
 // --- Wallet Connection Flows ---
 function initWalletConnection() {
   const btn = $('connectWalletBtn');
+  if (!btn) return;
+  
+  if (state.walletAddress !== 'Not Connected') {
+    btn.innerHTML = `<span>Disconnect</span>`;
+    btn.title = `Connected: ${state.walletAddress}`;
+  }
+  
   btn.addEventListener('click', async () => {
-    await requestWeb3Connection();
+    if (state.walletAddress !== 'Not Connected') {
+      disconnectWallet();
+    } else {
+      await requestWeb3Connection();
+    }
   });
+}
+
+function disconnectWallet() {
+  state.walletAddress = 'Not Connected';
+  state.network = 'None';
+  state.balance = 0;
+  state.dustAssets = [];
+  state.phishingTokens = [];
+  state.phishingNfts = [];
+  state.selectedDustIds = new Set();
+  
+  localStorage.removeItem('safesweep_walletAddress');
+  localStorage.removeItem('safesweep_network');
+  
+  if ($('walletNetwork')) $('walletNetwork').textContent = 'None';
+  if ($('walletAddress')) $('walletAddress').textContent = 'Not Connected';
+  if ($('networkStatus')) $('networkStatus').textContent = 'None';
+  
+  const btn = $('connectWalletBtn');
+  if (btn) {
+    btn.innerHTML = `
+      <svg class="wallet-icon-svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" width="16" height="16">
+        <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/>
+        <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/>
+        <path d="M18 12a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h4v-6z"/>
+      </svg>
+      <span>Connect OKX Wallet</span>
+    `;
+    btn.title = '';
+  }
+  
+  updateUI();
 }
 
 async function requestWeb3Connection() {
@@ -796,7 +843,12 @@ async function requestWeb3Connection() {
     if ($('walletNetwork')) $('walletNetwork').textContent = state.network;
     if ($('networkStatus')) $('networkStatus').textContent = state.network;
     if ($('walletAddress')) $('walletAddress').textContent = `${state.walletAddress.substring(0, 6)}...${state.walletAddress.substring(38)}`;
-    if ($('connectWalletBtn')) $('connectWalletBtn').innerHTML = `<span>CONNECTED</span>`;
+    
+    const btn = $('connectWalletBtn');
+    if (btn) {
+      btn.innerHTML = `<span>Disconnect</span>`;
+      btn.title = `Connected: ${state.walletAddress}`;
+    }
     
     // Perform live scan
     await scanAddressAssets(state.walletAddress, chainId);

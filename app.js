@@ -244,9 +244,11 @@ function parseHexResultString(hex) {
 
 // On-Chain Asset Scanner
 async function scanAddressAssets(address, chainId) {
-  const rpcUrl = RPC_ENDPOINTS[chainId] || 'provider';
+  const isSandbox = state.network.includes('Sandbox');
+  const isConnected = state.walletAddress !== 'Not Connected' && !isSandbox;
+  const rpcUrl = isConnected ? 'provider' : (RPC_ENDPOINTS[chainId] || 'provider');
   
-  console.log(`[Safesweep Scan] Starting on-chain assets scan for: ${address} on Chain: ${chainId}`);
+  console.log(`[Safesweep Scan] Starting scan for: ${address} on Chain ID: ${chainId} via: ${rpcUrl}`);
   
   // Clear old states
   state.dustAssets = [];

@@ -1263,8 +1263,16 @@ function getAgentResponse(query) {
   
   if (q.includes('sandbox')) {
     setTimeout(async () => {
-      if ($('sandboxAddressInput')) $('sandboxAddressInput').value = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
-      if ($('btnSandboxScan')) $('btnSandboxScan').click();
+      state.walletAddress = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
+      state.network = 'Ethereum Mainnet (Sandbox)';
+      localStorage.setItem('safesweep_walletAddress', state.walletAddress);
+      localStorage.setItem('safesweep_network', state.network);
+      
+      if ($('walletNetwork')) $('walletNetwork').textContent = state.network;
+      if ($('walletAddress')) $('walletAddress').textContent = `${state.walletAddress.substring(0, 6)}...${state.walletAddress.substring(38)}`;
+      if ($('connectWalletBtn')) $('connectWalletBtn').innerHTML = `<span>CONNECTED</span>`;
+      
+      await scanAddressAssets(state.walletAddress, 1);
     }, 100);
     return {
       text: 'Loading public Sandbox scanner...\nRunning dynamic on-chain balance and log scan for address `0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045` on Ethereum Mainnet...',

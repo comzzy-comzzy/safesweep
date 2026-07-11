@@ -146,6 +146,15 @@ function initCopyWalletAddress() {
 
 // JSON-RPC Poster
 async function callRpc(rpcUrl, method, params) {
+  if (!rpcUrl || rpcUrl === 'provider') {
+    const provider = window.okxwallet || window.ethereum;
+    if (provider) {
+      const res = await provider.request({ method: method, params: params });
+      return res;
+    }
+    throw new Error("No RPC URL or Web3 Provider available");
+  }
+  
   try {
     const response = await fetch(rpcUrl, {
       method: 'POST',
@@ -183,8 +192,12 @@ async function getTokenPrice(symbol) {
   }
   
   // On-chain fallback estimates (realistic averages if pricing API fails)
-  const fallbacks = { 'ETH': 3200, 'WETH': 3200, 'OKB': 52.50, 'BNB': 580, 'WBNB': 580, 'MATIC': 0.55, 'LINK': 14.20, 'SHIB': 0.000015, 'PEPE': 0.000009 };
-  return fallbacks[symbol] || 0.0;
+  const fallbacks = { 'ETH': 3200, 'WETH': 3200, 'OKB': 52.50, 'OKT': 16.50, 'BNB': 580, 'WBNB': 580, 'MATIC': 0.55, 'LINK': 14.20, 'SHIB': 0.000015, 'PEPE': 0.000009 };
+  let price = fallbacks[symbol];
+  if (price !== undefined) return price;
+  
+  if (symbol.includes('OKB') || symbol.includes('OKT')) return 52.50;
+  return 1.0; // Default to $1.00 instead of $0.00 so assets retain display value
 }
 
 // ERC20 String parser
@@ -209,8 +222,7 @@ function parseHexResultString(hex) {
 
 // On-Chain Asset Scanner
 async function scanAddressAssets(address, chainId) {
-  const rpcUrl = RPC_ENDPOINTS[chainId];
-  if (!rpcUrl) return;
+  const rpcUrl = RPC_ENDPOINTS[chainId] || 'provider';
   
   console.log(`[Safesweep Scan] Starting on-chain assets scan for: ${address} on Chain: ${chainId}`);
   
@@ -228,8 +240,8 @@ async function scanAddressAssets(address, chainId) {
     state.nativeAssetBalance = Number(nativeBalWei) / 10**18;
     
     // Map native asset details
-    const nativeSymbols = { 1: 'ETH', 196: 'OKB', 195: 'OKB', 137: 'POL', 56: 'BNB' };
-    state.nativeSymbol = nativeSymbols[chainId] || 'ETH';
+    const nativeSymbols = { 1: 'ETH', 196: 'OKB', 195: 'OKB', 968: 'OKB', 137: 'POL', 56: 'BNB' };
+    state.nativeSymbol = nativeSymbols[chainId] || 'OKB';
     
     const nativePrice = await getTokenPrice(state.nativeSymbol);
     const nativeValueUsd = state.nativeAssetBalance * nativePrice;

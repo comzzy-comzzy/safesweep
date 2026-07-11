@@ -108,9 +108,21 @@
                       <p>Select the low-value assets you want to consolidate in a single transaction.</p>
                     </div>
                     <div class="flex-actions-wrap" style="display: flex; gap: 8px;">
+                      <button class="btn btn-sm btn-outline-accent" id="btnAddCustomToken">Add Token</button>
                       <button class="btn btn-sm btn-outline-accent" id="btnSelectAllDust">Select All</button>
                       <button class="btn btn-sm btn-outline-accent" id="btnDeselectAllDust">Clear Selection</button>
                     </div>
+                  </div>
+                  
+                  <!-- Custom Token Input Panel (hidden by default) -->
+                  <div class="card-item mb-4 hidden" id="customTokenPanel" style="background: var(--bg); border: 1px dashed var(--border); padding: 16px; margin: 0 24px 20px 24px;">
+                    <h4 style="margin-bottom: 8px;">Add Custom Token Contract</h4>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                      <input type="text" id="customTokenAddressInput" placeholder="Enter contract address (0x...)" style="flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: var(--font-mono); font-size: 0.9rem;" />
+                      <button class="btn btn-accent btn-sm" id="btnSubmitCustomToken">Add & Scan</button>
+                      <button class="btn btn-outline-accent btn-sm" id="btnCancelCustomToken">Cancel</button>
+                    </div>
+                    <p id="customTokenError" style="color: var(--state-error); font-size: 0.8rem; margin-top: 6px; display: none;"></p>
                   </div>
                   
                   <div class="threats-container">

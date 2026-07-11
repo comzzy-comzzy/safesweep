@@ -4,6 +4,7 @@ const state = {
   activeTab: 'sweeper',
   walletAddress: localStorage.getItem('safesweep_walletAddress') || 'Not Connected',
   network: localStorage.getItem('safesweep_network') || 'None',
+  chainId: parseInt(localStorage.getItem('safesweep_chainId') || '1'),
   balance: 0, // In USD
   nativeAssetBalance: 0,
   nativeSymbol: 'ETH',
@@ -96,6 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if ($('autoShieldSwitch')) initAutoShieldToggle();
   if ($('copilotSendBtn') || $('copilotInput')) initCopilotChat();
   if ($('tabSpamTokensBtn')) initShieldTabs();
+  if ($('btnAddCustomToken')) initCustomTokenPanel();
   
   // Restore connection state from localStorage
   if (state.walletAddress !== 'Not Connected') {
@@ -108,13 +110,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     // Auto-scan on-chain details
-    const chainId = state.network.includes('X Layer') ? 195 : 1;
-    scanAddressAssets(state.walletAddress, chainId);
+    scanAddressAssets(state.walletAddress, state.chainId);
   }
   
   // Render default clean state
   updateUI();
-  updateLiveNetworkStats(1); // Default Ethereum
+  updateLiveNetworkStats(state.chainId); // Default Ethereum
 });
 
 // Navigation logic
@@ -278,7 +279,12 @@ async function scanAddressAssets(address, chainId) {
   }
 
   // 2. Fetch ERC-20 Balances
-  const tokensToScan = SCAN_TOKENS[chainId] || [];
+  const customTokensKey = `safesweep_custom_tokens_${chainId}`;
+  const customTokens = JSON.parse(localStorage.getItem(customTokensKey) || '[]');
+  const tokensToScan = [
+    ...(SCAN_TOKENS[chainId] || SCAN_TOKENS[196] || []),
+    ...customTokens
+  ];
   const addressParam = address.substring(2).padStart(64, '0').toLowerCase();
   
   // Fetch details concurrently to optimize load speed
@@ -876,6 +882,7 @@ async function requestWeb3Connection() {
     const chainId = parseInt(chainIdHex, 16);
     
     state.walletAddress = accounts[0];
+    state.chainId = chainId;
     
     // Map active chain name
     const chains = { 1: 'Ethereum Mainnet', 196: 'X Layer Mainnet', 195: 'X Layer Testnet', 137: 'Polygon', 56: 'BSC' };
@@ -883,6 +890,7 @@ async function requestWeb3Connection() {
     
     localStorage.setItem('safesweep_walletAddress', state.walletAddress);
     localStorage.setItem('safesweep_network', state.network);
+    localStorage.setItem('safesweep_chainId', chainId.toString());
     
     if ($('walletNetwork')) $('walletNetwork').textContent = state.network;
     if ($('networkStatus')) $('networkStatus').textContent = state.network;
@@ -930,6 +938,73 @@ function initSandboxScanner() {
     // Perform real on-chain scan of public address on Ethereum Mainnet (Chain 1)
     await scanAddressAssets(state.walletAddress, 1);
   });
+}
+
+// --- Custom Token Management Panel ---
+function initCustomTokenPanel() {
+  const btnAdd = $('btnAddCustomToken');
+  const btnCancel = $('btnCancelCustomToken');
+  const btnSubmit = $('btnSubmitCustomToken');
+  const panel = $('customTokenPanel');
+  
+  if (btnAdd && panel) {
+    btnAdd.addEventListener('click', () => {
+      panel.classList.toggle('hidden');
+      if ($('customTokenError')) $('customTokenError').style.display = 'none';
+    });
+  }
+  
+  if (btnCancel && panel) {
+    btnCancel.addEventListener('click', () => {
+      panel.classList.add('hidden');
+    });
+  }
+  
+  if (btnSubmit) {
+    btnSubmit.addEventListener('click', () => {
+      handleAddCustomToken();
+    });
+  }
+}
+
+async function handleAddCustomToken() {
+  const input = $('customTokenAddressInput');
+  const err = $('customTokenError');
+  if (!input || !err) return;
+  
+  err.style.display = 'none';
+  const address = input.value.trim().toLowerCase();
+  
+  if (!address.startsWith('0x') || address.length !== 42) {
+    err.textContent = "Please enter a valid 42-character contract address.";
+    err.style.display = 'block';
+    return;
+  }
+  
+  const rpcUrl = RPC_ENDPOINTS[state.chainId] || 'provider';
+  try {
+    const symHex = await callRpc(rpcUrl, 'eth_call', [{ to: address, data: '0x95d89b41' }, 'latest']);
+    const symbol = parseHexResultString(symHex) || 'CUSTOM';
+    
+    const nameHex = await callRpc(rpcUrl, 'eth_call', [{ to: address, data: '0x06fdde03' }, 'latest']);
+    const name = parseHexResultString(nameHex) || 'Custom Token';
+    
+    const key = `safesweep_custom_tokens_${state.chainId}`;
+    const list = JSON.parse(localStorage.getItem(key) || '[]');
+    
+    if (!list.some(t => t.address.toLowerCase() === address)) {
+      list.push({ symbol: symbol, name: name, address: address });
+      localStorage.setItem(key, JSON.stringify(list));
+    }
+    
+    input.value = '';
+    $('customTokenPanel').classList.add('hidden');
+    
+    await scanAddressAssets(state.walletAddress, state.chainId);
+  } catch (e) {
+    err.textContent = "Failed to query contract details. Make sure it is an ERC-20 contract on this chain.";
+    err.style.display = 'block';
+  }
 }
 
 // --- Sweep batch action flow ---

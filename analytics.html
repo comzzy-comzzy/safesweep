@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Protocol Analytics | Safesweep</title>
+    <meta name="description" content="Review live network metrics, total volume swept, and platform fee statistics for the Safesweep protocol." />
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Plus+Jakarta+Sans:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Top Navigation Bar (Apex Style) -->
+    <header class="nav standard-nav">
+      <div class="wrap">
+        <div class="logo">
+          <!-- Unique Sweeper Shield Vector Logo -->
+          <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 2L6 6v8c0 5.52 4.48 10 10 12 5.52-2 10-6.48 10-12V6L16 2z" fill="var(--accent)" fill-opacity="0.1" stroke="var(--accent)" stroke-width="2"/>
+            <path d="M11 12l4 4-2 6" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M15 11l4 4-1.5 4" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 10l4 4" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M8 22c4 3 12 3 16 0" stroke="var(--accent2)" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span>Safesweep</span>
+        </div>
+        
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link-btn" id="btnTabSweeper">Dust Sweeper</a></li>
+          <li><a href="shield.html" class="nav-link-btn" id="btnTabShield">Phishing Shield</a></li>
+          <li><a href="copilot.html" class="nav-link-btn" id="btnTabCopilot">Copilot Chat</a></li>
+          <li><a href="analytics.html" class="nav-link-btn active" id="btnTabRevenue">Analytics</a></li>
+        </ul>
+        
+        <div class="header-actions">
+          <button class="rpc-status" id="rpcStatusBtn">
+            <span class="status-indicator-green"></span>
+            Node Status
+          </button>
+          <button class="connect-wallet-btn" id="connectWalletBtn">
+            <svg class="wallet-icon-svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" width="16" height="16">
+              <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/>
+              <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/>
+              <path d="M18 12a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h4v-6z"/>
+            </svg>
+            <span>Connect OKX Wallet</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- Hero Section (Apex Layout Centered) -->
+      <section class="hero layout-centered">
+        <div class="wrap">
+          <div class="badge">Protocol Financial Metrics</div>
+          <h1>Safesweep <span>on-chain analytics</span>.</h1>
+          <p>Review real-time fees collected, aggregate volume swept, active subscriber metrics, and node connection statistics for the Safesweep platform.</p>
+          
+          <!-- Connected Wallet Panel -->
+          <div class="wallet-status-panel">
+            <div class="wallet-info-row">
+              <div class="wallet-meta">
+                <span class="meta-label">Connected Wallet</span>
+                <strong class="meta-value" id="walletAddress">Not Connected</strong>
+              </div>
+              <div class="wallet-meta">
+                <span class="meta-label">Active Chain</span>
+                <strong class="meta-value" id="walletNetwork">None</strong>
+              </div>
+              <div class="wallet-meta">
+                <span class="meta-label">Total Premium Users</span>
+                <strong class="meta-value text-accent" id="premiumUsersCount">14 Subscribed</strong>
+              </div>
+            </div>
+            <div class="wallet-actions-row" style="display:none;">
+              <span id="totalBalance">$0.00</span>
+              <button id="copyAddressBtn">Copy</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main Dashboard Views -->
+      <section class="section-centered">
+        <div class="wrap">
+          
+          <div class="tab-content active" id="tabRevenue">
+            <!-- Grid 3 metrics -->
+            <div class="grid-3 mb-4">
+              <div class="card-item">
+                <span class="metric-label">Active Node Connection</span>
+                <h3 class="metric-value text-accent" id="gasPriceGwei">12 Gwei</h3>
+                <p class="metric-sub" id="currentBlockHeight">Block Height: Loading...</p>
+              </div>
+              <div class="card-item">
+                <span class="metric-label">Aggregated Volume Swept</span>
+                <h3 class="metric-value" id="totalSweptValueUSD">$342.10</h3>
+                <p class="metric-sub">Cumulative dust value converted</p>
+              </div>
+              <div class="card-item">
+                <span class="metric-label">Protocol Fees Captured</span>
+                <h3 class="metric-value text-success" id="activeShieldCount">$3.42</h3>
+                <p class="metric-sub">1% tax generated on sweeps</p>
+              </div>
+            </div>
+            
+            <div class="card-item">
+              <h2>Protocol Architecture & Monetization</h2>
+              <p class="mb-4">Safesweep aligns blockchain utility with sustainable developer monetization. By collecting a small transaction fee on dust swaps and charging a subscription for real-time monitoring, Safesweep funds its own nodes and developers.</p>
+              
+              <div class="grid-2">
+                <div class="feature-detail-card">
+                  <h4>Transactional Sweep Tax (1.0%)</h4>
+                  <p>Consolidating many separate tokens into a single swap results in massive gas savings (up to 80%). To capture value, Safesweep takes a 1.0% platform fee on the total consolidated swap volume. Users still save considerable funds on gas, creating a win-win.</p>
+                </div>
+                
+                <div class="feature-detail-card">
+                  <h4>Mempool Premium Shield (0.1 OKB / month)</h4>
+                  <p>Subscribing to Premium unlocks real-time monitoring. The agent scans the mempool to dynamically frontrun honeypot tokens, blocks malicious approvals at the RPC node level, and sends instant XMTP alerts about unauthorized on-chain activities.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </section>
+    </main>
+
+    <footer id="contact-footer">
+      <div class="wrap">
+        <p>&copy; 2026 Safesweep. Reconstructed using Apex Orbit Templates. OKX Hackathon Submission.</p>
+      </div>
+    </footer>
+    
+    <script src="app.js"></script>
+  </body>
+</html>

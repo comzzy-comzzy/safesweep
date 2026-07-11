@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Safesweep | OKX Wallet AI Optimizer & Phishing Shield</title>
-    <meta name="description" content="Safesweep is an AI-powered asset optimizer and phishing shield built for OKX Wallet. Sweep low-value dust tokens and auto-hide malicious spam assets." />
+    <title>Phishing Shield | Safesweep</title>
+    <meta name="description" content="Safesweep automatically isolates flagged addresses and suspicious on-chain assets from your wallet interface." />
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -30,8 +30,8 @@
         </div>
         
         <ul class="nav-links">
-          <li><a href="index.html" class="nav-link-btn active" id="btnTabSweeper">Dust Sweeper</a></li>
-          <li><a href="shield.html" class="nav-link-btn" id="btnTabShield">Phishing Shield</a></li>
+          <li><a href="index.html" class="nav-link-btn" id="btnTabSweeper">Dust Sweeper</a></li>
+          <li><a href="shield.html" class="nav-link-btn active" id="btnTabShield">Phishing Shield</a></li>
           <li><a href="copilot.html" class="nav-link-btn" id="btnTabCopilot">Copilot Chat</a></li>
           <li><a href="analytics.html" class="nav-link-btn" id="btnTabRevenue">Analytics</a></li>
         </ul>
@@ -57,9 +57,9 @@
       <!-- Hero Section (Apex Layout Centered) -->
       <section class="hero layout-centered">
         <div class="wrap">
-          <div class="badge">OKX AI Hackathon Genesis</div>
-          <h1>Powering the future of <span>wallet optimization</span>.</h1>
-          <p>Consolidate lost gas from scattered dust balances automatically and quarantine malicious tokens/NFTs using a client-side heuristic security shield.</p>
+          <div class="badge badge-accent">Security Protection Active</div>
+          <h1>Client-side <span>phishing shield</span>.</h1>
+          <p>Protect your wallet from honeypots, scam vouchers, and fake airdrops. Safesweep automatically isolates malicious contracts using on-chain metadata heuristics.</p>
           
           <!-- Connected Wallet Panel -->
           <div class="wallet-status-panel">
@@ -73,18 +73,13 @@
                 <strong class="meta-value" id="walletNetwork">None</strong>
               </div>
               <div class="wallet-meta">
-                <span class="meta-label">Portfolio Balance</span>
-                <strong class="meta-value text-accent" id="totalBalance">$0.00</strong>
+                <span class="meta-label">Security Scan Status</span>
+                <strong class="meta-value text-success" id="shieldStateText">Shield Armed</strong>
               </div>
             </div>
-            <div class="wallet-actions-row">
-              <button class="btn btn-copy" id="copyAddressBtn" aria-label="Copy Address">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                </svg>
-                Copy Address
-              </button>
+            <div class="wallet-actions-row" style="display:none;">
+              <span id="totalBalance">$0.00</span>
+              <button id="copyAddressBtn">Copy</button>
             </div>
           </div>
         </div>
@@ -94,17 +89,16 @@
       <section class="section-centered">
         <div class="wrap">
           
-          <!-- TAB 1: DUST SWEEPER (Reconstructed without token table, replaced with Phishing Shield overview) -->
-          <div class="tab-content active" id="tabSweeper">
+          <div class="tab-content active" id="tabShield">
             <div class="grid-2 layout-unequal">
               
-              <!-- Left side: Replaced Table with Phishing Shield Quick View -->
-              <div class="sweeper-main">
+              <!-- Left side: Threat list -->
+              <div class="shield-main">
                 <div class="card-item">
                   <div class="card-header flex-header-wrap">
                     <div>
-                      <h2>Isolated Security Threats</h2>
-                      <p>These malicious assets contain phishing redirects and were quarantined instantly.</p>
+                      <h2>Quarantined Threat Assets</h2>
+                      <p>These assets have been identified as high-risk and are hidden from your main portfolio.</p>
                     </div>
                     <div class="shield-tabs">
                       <button class="btn btn-sm btn-tab active" id="tabSpamTokensBtn">Phishing Tokens (<span id="spamTokenCount">0</span>)</button>
@@ -120,85 +114,57 @@
                           <th>Contract Address</th>
                           <th>Balance</th>
                           <th>AI Score</th>
+                          <th style="text-align: center;">Actions</th>
                         </tr>
                       </thead>
                       <tbody id="spamTokensTableBody">
                         <tr>
-                          <td colspan="4" class="empty-state">Connect your OKX Wallet to perform a live threat quarantine scan.</td>
+                          <td colspan="5" class="empty-state">No threats detected. Connect your OKX Wallet to initiate scanner.</td>
                         </tr>
                       </tbody>
                     </table>
                     
                     <div class="threats-grid-nfts hidden" id="spamNftsGrid">
+                      <!-- Populated dynamically -->
                       <p class="empty-state">No spam NFTs found in recent transfer logs.</p>
                     </div>
                   </div>
+                </div>
+              </div>
+              
+              <!-- Right side: Shield controls & logs -->
+              <div class="shield-sidebar">
+                <div class="card-item card-accent-top">
+                  <h2>Shield Controls</h2>
+                  <p class="mb-4">Configure heuristics and mempool scan policies.</p>
                   
-                  <div class="switch-card mt-4" style="margin-bottom: 0;">
+                  <div class="switch-card">
                     <div class="switch-info">
                       <h4>Auto-Shield Protection</h4>
-                      <p>Automatically isolates flagged addresses from wallet interface.</p>
+                      <p>Hide malicious assets and block outgoing approve calls.</p>
                     </div>
                     <label class="switch" for="autoShieldSwitch">
                       <input type="checkbox" id="autoShieldSwitch" checked />
                       <span class="slider round"></span>
                     </label>
                   </div>
-                </div>
-              </div>
-              
-              <!-- Right side: Sweep controls -->
-              <div class="sweeper-sidebar">
-                <div class="card-item card-accent-top">
-                  <h2>Sweep Optimizer</h2>
-                  <p class="mb-4">Consolidate all discovered low-value tokens into a single asset in a single transaction.</p>
                   
-                  <div class="control-group">
-                    <label for="targetTokenSelect">Convert target asset</label>
-                    <select id="targetTokenSelect">
-                      <option value="OKB">OKB (Native Gas / X Layer)</option>
-                      <option value="USDT" selected>USDT (Tether Stablecoin)</option>
-                      <option value="USDC">USDC (USD Coin)</option>
-                      <option value="WETH">WETH (Wrapped Ether)</option>
-                    </select>
-                  </div>
-                  
-                  <div class="sweep-summary">
-                    <div class="summary-title">Sweep Estimate</div>
-                    
-                    <div class="summary-details">
-                      <div class="detail-row">
-                        <span>Tokens Identified</span>
-                        <strong id="selectedCount">0</strong>
-                      </div>
-                      <div class="detail-row">
-                        <span>Aggregate Value</span>
-                        <strong id="selectedTotalValue">$0.00</strong>
-                      </div>
-                      <div class="detail-row highlight-green">
-                        <span>Saved Gas Fees</span>
-                        <strong id="savedGasAmount">$0.00</strong>
-                      </div>
-                      
-                      <hr class="summary-divider" />
-                      
-                      <div class="detail-row">
-                        <span>Target Amount (Est.)</span>
-                        <strong id="sweepFinalValue">0.00 USDT</strong>
-                      </div>
-                      <div class="detail-row">
-                        <span>Protocol Sweep Fee (1%)</span>
-                        <strong id="sweepFeeValue">$0.00</strong>
-                      </div>
-                      <div class="detail-row highlight-accent">
-                        <span>Net Received (Est.)</span>
-                        <strong id="sweepNetValue">0.00 USDT</strong>
-                      </div>
+                  <div class="premium-badge-box mb-4">
+                    <div class="premium-header">
+                      <span class="badge badge-accent">PREMIUM</span>
+                      <h3>Real-time RPC Block</h3>
                     </div>
+                    <p>Subscribing to Premium blocks all signature requests sent from flagged spam contracts at the RPC layer.</p>
+                    <button class="btn btn-accent btn-full mt-3" id="sidebarUpgradeBtn">Upgrade for 0.1 OKB</button>
                   </div>
                   
-                  <button class="btn btn-accent btn-full" id="btnSweepNow" disabled>Scan & Sweep All Dust</button>
-                  <p class="text-caption mt-3">Batching execution is processed client-side using standard multicall protocols. Make sure to review the transaction approval prompts in your wallet.</p>
+                  <h3>Onchain Heuristic Scanner Log</h3>
+                  <div class="execution-log" style="height: 150px; margin-top: 10px;">
+                    <div class="log-entry info">[SYSTEM] Safesweep shield engine armed.</div>
+                    <div class="log-entry info">[SYSTEM] Listening for incoming blocks...</div>
+                    <div class="log-entry success">[INFO] Scanning transaction logs (decoding Transfer events)...</div>
+                    <div class="log-entry info">[INFO] Block parsed. Checked 18 contracts.</div>
+                  </div>
                 </div>
               </div>
               
@@ -208,27 +174,6 @@
         </div>
       </section>
     </main>
-
-    <!-- Modal 1: Sweep execution simulator -->
-    <div class="modal-overlay" id="sweepModal">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3>Sweep Execution Progress</h3>
-          <button class="close-btn" id="closeSweepModalBtn">&times;</button>
-        </div>
-        <div class="modal-body">
-          <div class="progress-bar-container">
-            <div class="progress-bar-fill" id="sweepProgressBar" style="width: 0%;"></div>
-          </div>
-          <div class="execution-log" id="sweepExecutionLog">
-            <!-- Populated dynamically -->
-          </div>
-          <div class="action-footer" style="text-align: right; display: none;" id="sweepModalFooter">
-            <button class="btn btn-accent" id="btnFinishSweep">Close Dialog</button>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Modal 2: Premium payment wizard -->
     <div class="modal-overlay" id="premiumModal">

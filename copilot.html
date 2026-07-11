@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Copilot | Safesweep</title>
+    <meta name="description" content="Chat with Safesweep's autonomous AI assistant to inspect wallet logs, sweep dust assets, or check security policies." />
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Plus+Jakarta+Sans:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Top Navigation Bar (Apex Style) -->
+    <header class="nav standard-nav">
+      <div class="wrap">
+        <div class="logo">
+          <!-- Unique Sweeper Shield Vector Logo -->
+          <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 2L6 6v8c0 5.52 4.48 10 10 12 5.52-2 10-6.48 10-12V6L16 2z" fill="var(--accent)" fill-opacity="0.1" stroke="var(--accent)" stroke-width="2"/>
+            <path d="M11 12l4 4-2 6" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M15 11l4 4-1.5 4" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 10l4 4" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M8 22c4 3 12 3 16 0" stroke="var(--accent2)" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span>Safesweep</span>
+        </div>
+        
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link-btn" id="btnTabSweeper">Dust Sweeper</a></li>
+          <li><a href="shield.html" class="nav-link-btn" id="btnTabShield">Phishing Shield</a></li>
+          <li><a href="copilot.html" class="nav-link-btn active" id="btnTabCopilot">Copilot Chat</a></li>
+          <li><a href="analytics.html" class="nav-link-btn" id="btnTabRevenue">Analytics</a></li>
+        </ul>
+        
+        <div class="header-actions">
+          <button class="rpc-status" id="rpcStatusBtn">
+            <span class="status-indicator-green"></span>
+            Node Status
+          </button>
+          <button class="connect-wallet-btn" id="connectWalletBtn">
+            <svg class="wallet-icon-svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" width="16" height="16">
+              <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/>
+              <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/>
+              <path d="M18 12a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h4v-6z"/>
+            </svg>
+            <span>Connect OKX Wallet</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- Hero Section (Apex Layout Centered) -->
+      <section class="hero layout-centered">
+        <div class="wrap">
+          <div class="badge">Safesweep Agent Copilot</div>
+          <h1>Autonomous <span>AI chat assistant</span>.</h1>
+          <p>Talk directly with the Safesweep Agent in natural language. Inspect wallet assets, request dynamic threat assessments, or configure custom security triggers.</p>
+          
+          <!-- Connected Wallet Panel -->
+          <div class="wallet-status-panel">
+            <div class="wallet-info-row">
+              <div class="wallet-meta">
+                <span class="meta-label">Connected Wallet</span>
+                <strong class="meta-value" id="walletAddress">Not Connected</strong>
+              </div>
+              <div class="wallet-meta">
+                <span class="meta-label">Active Chain</span>
+                <strong class="meta-value" id="walletNetwork">None</strong>
+              </div>
+              <div class="wallet-meta">
+                <span class="meta-label">Agent Status</span>
+                <strong class="meta-value text-accent">Copilot Active</strong>
+              </div>
+            </div>
+            <div class="wallet-actions-row" style="display:none;">
+              <span id="totalBalance">$0.00</span>
+              <button id="copyAddressBtn">Copy</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main Dashboard Views -->
+      <section class="section-centered">
+        <div class="wrap">
+          
+          <div class="tab-content active" id="tabCopilot">
+            <div class="copilot-container">
+              <div class="card-item max-width-centered">
+                <div class="copilot-header">
+                  <div class="agent-avatar">
+                    <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="16" cy="16" r="14" fill="var(--accent)" fill-opacity="0.1" stroke="var(--accent)" stroke-width="2"/>
+                      <path d="M12 14l4 4-2 6" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
+                      <path d="M15 13l4 4" stroke="var(--accent)" stroke-width="2"/>
+                    </svg>
+                  </div>
+                  <div class="agent-info">
+                    <h3>Safesweep AI Copilot</h3>
+                    <span class="status-indicator-active">Online & Listening</span>
+                  </div>
+                </div>
+                
+                <div class="copilot-chat" id="copilotChat">
+                  <div class="chat-message agent">
+                    <div class="msg-content">
+                      <p>🧹 Welcome to **Safesweep**! 👋<br/><br/>I am your wallet optimization and security assistant. I scan your portfolio on-chain to consolidate low-value dust assets and protect you from high-risk tokens. How can I help you today?</p>
+                    </div>
+                    <div class="message-actions">
+                      <button class="suggestion-btn" data-action="sweep">🧹 Sweep Dust</button>
+                      <button class="suggestion-btn" data-action="shield">🛡️ Check Threat Log</button>
+                      <button class="suggestion-btn" data-action="monetize">💰 View Monetization Model</button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="copilot-input-area">
+                  <input type="text" id="copilotInput" placeholder="Type a message or command (e.g. 'sweep', 'shield', 'monetize')..." />
+                  <button class="btn btn-accent" id="copilotSendBtn">Send</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </section>
+    </main>
+
+    <footer id="contact-footer">
+      <div class="wrap">
+        <p>&copy; 2026 Safesweep. Reconstructed using Apex Orbit Templates. OKX Hackathon Submission.</p>
+      </div>
+    </footer>
+    
+    <script src="app.js"></script>
+  </body>
+</html>

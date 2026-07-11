@@ -260,7 +260,7 @@ async function scanAddressAssets(address, chainId) {
   // 1. Fetch native balance (ETH/OKB/MATIC/BNB)
   try {
     const nativeBalHex = await callRpc(rpcUrl, 'eth_getBalance', [address, 'latest']);
-    const nativeBalWei = BigInt(nativeBalHex);
+    const nativeBalWei = (nativeBalHex && nativeBalHex !== '0x') ? BigInt(nativeBalHex) : 0n;
     state.nativeAssetBalance = Number(nativeBalWei) / 10**18;
     
     // Map native asset details
@@ -301,7 +301,7 @@ async function scanAddressAssets(address, chainId) {
       // eth_call for balanceOf(address) -> Selector: 0x70a08231
       const calldata = '0x70a08231' + addressParam;
       const balHex = await callRpc(rpcUrl, 'eth_call', [{ to: token.address, data: calldata }, 'latest']);
-      const balanceBig = BigInt(balHex);
+      const balanceBig = (balHex && balHex !== '0x') ? BigInt(balHex) : 0n;
       if (balanceBig === 0n) return;
       
       // Decimals selector: 0x313ce567
@@ -375,7 +375,7 @@ async function scanAddressAssets(address, chainId) {
       try {
         const calldata = '0x70a08231' + addressParam;
         const balHex = await callRpc(rpcUrl, 'eth_call', [{ to: contractAddr, data: calldata }, 'latest']);
-        const balanceBig = BigInt(balHex);
+        const balanceBig = (balHex && balHex !== '0x') ? BigInt(balHex) : 0n;
         if (balanceBig === 0n) return;
         
         // Query metadata dynamically from contract
@@ -512,9 +512,26 @@ async function updateLiveNetworkStats(chainId) {
 
 // --- Dynamic UI Renderers ---
 function updateUI() {
+  const supportedChains = [1, 196, 195, 137, 56];
+  const isSandbox = state.network.includes('Sandbox');
+  const isSupported = state.walletAddress === 'Not Connected' || isSandbox || supportedChains.includes(state.chainId);
+  
+  const netLabel = $('walletNetwork');
+  if (netLabel) {
+    if (state.walletAddress !== 'Not Connected' && !isSupported) {
+      netLabel.innerHTML = `<span style="color: var(--state-error); cursor: pointer; text-decoration: underline;" onclick="switchNetwork(196)" title="Click to Switch to X Layer Mainnet">Chain ID ${state.chainId} (Switch to X Layer)</span>`;
+    } else {
+      netLabel.textContent = state.network;
+    }
+  }
+
   // Update Header Balance
   if ($('totalBalance')) {
-    $('totalBalance').textContent = `$${state.balance.toFixed(2)}`;
+    if (state.walletAddress !== 'Not Connected' && !isSupported && state.balance === 0) {
+      $('totalBalance').innerHTML = `<span style="font-size: 0.85rem; color: var(--muted); cursor: pointer; text-decoration: underline;" onclick="switchNetwork(196)">Switch to X Layer</span>`;
+    } else {
+      $('totalBalance').textContent = `$${state.balance.toFixed(2)}`;
+    }
   }
   
   // Render Panels
@@ -921,6 +938,43 @@ async function requestWeb3Connection() {
     console.error("Connection failed:", e);
   }
 }
+
+window.switchNetwork = async function(targetChainId) {
+  const provider = window.okxwallet || window.ethereum;
+  if (!provider) {
+    alert("Please install OKX Wallet to switch networks.");
+    return;
+  }
+  
+  const hexChainId = '0x' + targetChainId.toString(16);
+  try {
+    await provider.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: hexChainId }]
+    });
+  } catch (e) {
+    if (e.code === 4902) {
+      if (targetChainId === 196) {
+        try {
+          await provider.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: '0xc4',
+              chainName: 'X Layer Mainnet',
+              nativeCurrency: { name: 'OKB', symbol: 'OKB', decimals: 18 },
+              rpcUrls: ['https://xlayerrpc.okx.com'],
+              blockExplorerUrls: ['https://www.okx.com/web3/explorer/xlayer']
+            }]
+          });
+        } catch (addError) {
+          console.error("Failed to add network:", addError);
+        }
+      }
+    } else {
+      console.error("Failed to switch network:", e);
+    }
+  }
+};
 
 // --- Sandbox public address scanner ---
 function initSandboxScanner() {

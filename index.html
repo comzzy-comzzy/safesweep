@@ -98,8 +98,48 @@
           <div class="tab-content active" id="tabSweeper">
             <div class="grid-2 layout-unequal">
               
-              <!-- Left side: Replaced Table with Phishing Shield Quick View -->
+              <!-- Left side: Dust Assets table and Phishing Shield Quick View -->
               <div class="sweeper-main">
+                <!-- Card 1: Dust Assets Detected -->
+                <div class="card-item mb-4">
+                  <div class="card-header flex-header-wrap">
+                    <div>
+                      <h2>Dust Assets Detected</h2>
+                      <p>Select the low-value assets you want to consolidate in a single transaction.</p>
+                    </div>
+                    <div class="flex-actions-wrap" style="display: flex; gap: 8px;">
+                      <button class="btn btn-sm btn-outline-accent" id="btnSelectAllDust">Select All</button>
+                      <button class="btn btn-sm btn-outline-accent" id="btnDeselectAllDust">Clear Selection</button>
+                    </div>
+                  </div>
+                  
+                  <div class="threats-container">
+                    <table class="dust-table" id="dustTable">
+                      <thead>
+                        <tr>
+                          <th style="width: 48px;">
+                            <label class="checkbox-container" onclick="event.stopPropagation();">
+                              <input type="checkbox" id="chkSelectAllDust" checked />
+                              <span class="checkmark"></span>
+                            </label>
+                          </th>
+                          <th>Token</th>
+                          <th>Contract Address</th>
+                          <th>Balance</th>
+                          <th>Value (USD)</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody id="dustTableBody">
+                        <tr>
+                          <td colspan="6" class="empty-state">Please Connect OKX Wallet or enter Sandbox Mode to scan active tokens.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Card 2: Isolated Security Threats -->
                 <div class="card-item">
                   <div class="card-header flex-header-wrap">
                     <div>

@@ -102,16 +102,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 function initNavigation() {
   const path = window.location.pathname;
   const tabs = {
-    'sweeper': 'index.html',
-    'shield': 'shield.html',
-    'copilot': 'copilot.html',
-    'revenue': 'analytics.html'
+    'sweeper': 'index',
+    'shield': 'shield',
+    'copilot': 'copilot',
+    'revenue': 'analytics'
   };
   
   Object.keys(tabs).forEach(tab => {
     const btn = $(`btnTab${capitalize(tab)}`);
     if (btn) {
-      const isCurrent = path.includes(tabs[tab]) || (tab === 'sweeper' && (path === '/' || path.endsWith('/index.html') || !path.includes('.html')));
+      const isSweeper = tab === 'sweeper' && (path === '/' || path.endsWith('/index.html') || path.endsWith('/index') || path === '');
+      const isCurrent = isSweeper || path.endsWith(tabs[tab]) || path.endsWith(`${tabs[tab]}.html`);
       if (isCurrent) {
         btn.classList.add('active');
         state.activeTab = tab;

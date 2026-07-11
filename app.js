@@ -28,7 +28,8 @@ const RPC_ENDPOINTS = {
   196: 'https://xlayerrpc.okx.com', // X Layer Mainnet
   195: 'https://xlayertestrpc.okx.com', // X Layer Testnet
   137: 'https://polygon-rpc.com', // Polygon Mainnet
-  56: 'https://bsc-dataseed.binance.org' // BSC Mainnet
+  56: 'https://bsc-dataseed.binance.org', // BSC Mainnet
+  968: 'https://mainnet.datagram.network/rpc' // Datagram Network Mainnet
 };
 
 // Common ERC-20 contract addresses to scan
@@ -109,13 +110,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       connBtn.title = `Connected: ${state.walletAddress}`;
     }
     
-    // Auto-scan on-chain details
-    scanAddressAssets(state.walletAddress, state.chainId);
+    // Auto-scan on-chain details, handle extension load delay
+    const runScan = () => scanAddressAssets(state.walletAddress, state.chainId);
+    if (window.okxwallet || window.ethereum) {
+      runScan();
+    } else {
+      setTimeout(runScan, 600); // 600ms delay retry for browser extension injection
+    }
   }
   
   // Render default clean state
   updateUI();
-  updateLiveNetworkStats(state.chainId); // Default Ethereum
+  updateLiveNetworkStats(state.chainId);
 });
 
 // Navigation logic
